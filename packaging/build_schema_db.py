@@ -34,8 +34,13 @@ def main() -> None:
         schema = stage / "schema_mysql5619.sql"
         schema.write_text(sql, encoding="utf-8")
         separator = ";" if sys.platform == "win32" else ":"
+        from windows_version import version_info
+
+        resource = stage / "version.txt"
+        resource.write_text(str(version_info(NAME)), encoding="utf-8")
         subprocess.run([
             sys.executable, "-m", "PyInstaller", "--onefile", "--console", "--name", NAME,
+            "--version-file", str(resource),
             "--distpath", str(stage / "dist"), "--workpath", str(stage / "work"), "--specpath", str(stage),
             "--paths", str(ROOT / "src"), "--paths", str(ROOT / "database"),
             "--add-data", f"{schema}{separator}database",

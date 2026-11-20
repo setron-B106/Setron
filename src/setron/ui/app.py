@@ -9,6 +9,7 @@ import argparse
 import sys
 from dataclasses import replace
 from datetime import date, datetime
+from importlib.metadata import version
 from pathlib import Path
 
 from PySide6.QtCore import QTimer, Qt
@@ -1525,6 +1526,7 @@ def main(argv: list[str] | None = None) -> int:
             windll.shell32.SetCurrentProcessExplicitAppUserModelID("SETRON.Desktop")
         app = QApplication(sys.argv[:1])
     app.setApplicationName("SETRON")
+    app.setApplicationVersion(version("setron"))
     app.setWindowIcon(icon("setron-window-icon.svg"))
     install_theme(app)
     from setron.ui.startup_window import StartupWindow
