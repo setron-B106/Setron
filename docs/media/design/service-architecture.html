@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SETRON · 설비 기록을 점검에 활용하는 과정</title>
-<style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#173754;font-family:"Malgun Gothic",sans-serif}.canvas{width:960px;max-width:100%;margin:0 auto}.canvas svg{display:block;width:100%;height:auto}footer{margin:16px auto;max-width:960px;padding:0 34px;color:#435867;font-size:14px}footer a{color:inherit}</style>
-</head><body><main class="canvas"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="960" height="445" viewBox="0 0 960 445" xml:lang="ko" role="img" aria-labelledby="service-title service-description">
-  <title id="service-title">설비 기록을 점검에 활용하는 과정</title>
-  <desc id="service-description">열린 Excel에서 설비 현황표나 릴리스 노트를 선택한다. 추출한 값을 원본 셀과 대조하고 수정한 뒤 저장한다. 담당자는 같은 기록을 대시보드와 버전 히트맵, 아이템 매니저, 버전 리플레이, 보고서에서 활용한다.</desc>
+<title>SETRON · 서비스 구성</title>
+<style>*{box-sizing:border-box}body{margin:0;background:#fff;color:#173754;font-family:"Malgun Gothic",sans-serif}.canvas{width:940px;max-width:100%;margin:0 auto}.canvas svg{display:block;width:100%;height:auto}footer{margin:16px auto;max-width:940px;padding:0 34px;color:#435867;font-size:14px}footer a{color:inherit}</style>
+</head><body><main class="canvas"><svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="940" height="230" viewBox="0 0 940 230" xml:lang="ko" role="img" aria-labelledby="title desc">
+  <title id="title">SETRON 서비스 구성</title>
+  <desc id="desc">Excel 설비 현황표와 릴리스 노트 → 원본 대조·저장 → 대시보드·버전 히트맵, 아이템 매니저, 버전 리플레이, 보고서.</desc>
   <metadata>Line icons from Lucide https://lucide.dev . ISC License
 
 Copyright (c) 2026 Lucide Icons and Contributors
@@ -50,17 +50,11 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 </metadata>
   <style>
-    :root { color-scheme:light; --paper:#fff; --ink:#173754; --accent:#16796b; --secondary:#435867; --rule:#acbfbe; --soft:#eaf4f1; }
-    svg { background:var(--paper); }
-    text { font-family:"Malgun Gothic","Noto Sans KR","Apple SD Gothic Neo",sans-serif; }
-    .title { fill:var(--ink); font-size:31px; font-weight:700; letter-spacing:-1.4px; }
-    .section { fill:var(--accent); font-size:17px; font-weight:700; letter-spacing:-.65px; }
-    .name { fill:var(--ink); font-size:21px; font-weight:700; letter-spacing:-.8px; }
-    .main { fill:var(--ink); font-size:23px; font-weight:700; letter-spacing:-.95px; }
-    .body { fill:var(--secondary); font-size:17px; letter-spacing:-.55px; }
-    .flow { fill:none; stroke:var(--accent); stroke-width:1.55; stroke-linejoin:round; stroke-linecap:round; }
-    .rule { stroke:#c3d0d1; stroke-width:1; }
-    .glyph { color:var(--accent); }
+    :root {color-scheme:light}
+    text {font-family:"Malgun Gothic","Noto Sans KR","Apple SD Gothic Neo",sans-serif;fill:#173754;font-size:22px;font-weight:600;letter-spacing:-.8px}
+    .key {font-weight:700;font-size:24px}
+    .flow {stroke:#16796b;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;fill:none}
+    .glyph {color:#16796b}
   </style>
   <defs>
     <symbol id="icon-sheet" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
@@ -75,27 +69,20 @@ SOFTWARE.
   <path d="M16 18v-3" /></g></symbol>
     <marker id="direction" markerUnits="userSpaceOnUse" refX="6" refY="4" orient="auto" markerWidth="8" markerHeight="8"><path d="m1 1 5 3-5 3" fill="none" stroke="#16796b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
   </defs>
-  <rect width="960" height="445" fill="#fff"/>
-  <text class="title" x="34" y="57">설비 기록을 점검에 활용하는 과정</text>
-  <path d="M34 82H926" stroke="#173754" stroke-width="1.2"/>
+  <rect width="940" height="230" fill="#fff"/>
 
-  <g id="input">
-    <text class="section" x="35" y="121">Excel에서 시트 선택</text>
-    <use xlink:href="#icon-sheet" class="glyph" x="36" y="182" width="25" height="25"/>
-    <text class="name" x="71" y="203">설비 현황표</text>
-    <text class="body" x="71" y="229">설비별 설치 버전</text>
-    <use xlink:href="#icon-report" class="glyph" x="36" y="283" width="25" height="25"/>
-    <text class="name" x="71" y="304">릴리스 노트</text>
-    <text class="body" x="71" y="330">버전별 변경 항목</text>
+  <g id="source-sheets">
+    <use xlink:href="#icon-sheet" class="glyph" x="29" y="75" width="27" height="27"/>
+    <text x="66" y="97">Excel 설비 현황표</text>
+    <use xlink:href="#icon-report" class="glyph" x="29" y="143" width="27" height="27"/>
+    <text x="66" y="165">릴리스 노트</text>
   </g>
-  <g id="input-connector">
-    <path class="flow" d="M209 197H234V298H209"/>
-    <path class="flow" d="M234 248H282" marker-end="url(#direction)"/>
+  <g id="inputs-to-review">
+    <path class="flow" d="M245 89H272V157H245"/>
+    <path class="flow" d="M272 123H339" marker-end="url(#direction)"/>
   </g>
-
-  <g id="review">
-    <text class="section" x="303" y="121">가져오기</text>
-    <g id="source-cell-detail" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+  <g id="review-and-save">
+    <g id="source-cell-detail" transform="translate(89 -113)" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M304 164h64v51h-64z" fill="#fff" stroke="#577081" stroke-width="1.6"/>
       <path d="M305 165h62v11h-62z" fill="#eaf4f1"/>
       <path d="M305 176h62m-62 13h62m-62 13h62m-43-26v38m21-38v38" fill="none" stroke="#93aaa9" stroke-width="1"/>
@@ -103,27 +90,20 @@ SOFTWARE.
       <path d="M348 195h30m0 0 7-7" fill="none" stroke="#16796b" stroke-width="1.3"/>
       <path d="m387 181 4 4 9-11" stroke="#16796b" stroke-width="2.8" fill="none"/>
     </g>
-    <text class="main" x="303" y="254">원본과 대조한 뒤 저장</text>
-    <text class="body" x="304" y="290">잘못 읽힌 값을 고치고</text>
-    <text class="body" x="304" y="315">반영할 변경분을 확인합니다.</text>
+    <text class="key" x="440" y="137" text-anchor="middle">원본 대조 · 저장</text>
   </g>
-  <g id="output-connector">
-    <path class="flow" d="M551 248H579M579 176V371"/>
-    <path class="flow" d="M579 176H612" marker-end="url(#direction)"/>
-    <path class="flow" d="M579 241H612" marker-end="url(#direction)"/>
-    <path class="flow" d="M579 306H612" marker-end="url(#direction)"/>
-    <path class="flow" d="M579 371H612" marker-end="url(#direction)"/>
+  <g id="review-to-screens">
+    <path class="flow" d="M540 123H590M590 42V186"/>
+    <path class="flow" d="M590 42H637" marker-end="url(#direction)"/>
+    <path class="flow" d="M590 90H637" marker-end="url(#direction)"/>
+    <path class="flow" d="M590 138H637" marker-end="url(#direction)"/>
+    <path class="flow" d="M590 186H637" marker-end="url(#direction)"/>
   </g>
   <g id="screens">
-    <text class="section" x="630" y="121">저장한 기록 활용</text>
-    <text class="name" x="630" y="183">대시보드 · 버전 히트맵</text>
-    <text class="body" x="630" y="209">목표 미달 설비와 위험 후보 찾기</text>
-    <text class="name" x="630" y="248">아이템 매니저</text>
-    <text class="body" x="630" y="274">변경 항목이 적용된 설비 확인하기</text>
-    <text class="name" x="630" y="313">버전 리플레이</text>
-    <text class="body" x="630" y="339">날짜별 달성률과 버전 분포 비교하기</text>
-    <text class="name" x="630" y="378">보고서</text>
-    <text class="body" x="630" y="404">항목을 골라 Word·PDF로 저장하기</text>
+    <text x="656" y="50">대시보드 · 버전 히트맵</text>
+    <text x="656" y="98">아이템 매니저</text>
+    <text x="656" y="146">버전 리플레이</text>
+    <text x="656" y="194">보고서</text>
   </g>
 </svg>
 </main>
