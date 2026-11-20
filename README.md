@@ -87,12 +87,23 @@
       <td width="44%" valign="middle"><strong>추출한 값 찾아 바꾸기</strong><br /><br />설비 호기처럼 같은 표기가 반복된 열은 한 번에 고칠 수 있습니다. 그림은 ESPG를 ESPH로 바꾸기 전의 설정 화면입니다. 원본 셀 값은 보존하고, 검토에서 제외한 행은 건너뜁니다.</td>
     </tr>
     <tr>
-      <td width="56%"><a href="docs/media/screens/dashboard-before-import.png"><img src="docs/media/screens/dashboard-before-import.png" alt="평택 현황표를 가져오기 전 화성 대시보드" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>가져오기 전 · 화성 100대</strong><br /><br />시연 기준일은 2026년 11월 1일입니다. 화성 설비 100대를 조회했을 때 목표 달성률은 72.0%, 위험 후보는 8대입니다.</td>
-    </tr>
-    <tr>
-      <td width="56%"><a href="docs/media/screens/dashboard-after-import.png"><img src="docs/media/screens/dashboard-after-import.png" alt="평택 현황표를 저장한 뒤 화성과 평택을 집계한 대시보드" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>가져온 뒤 · 화성·평택 124대</strong><br /><br />같은 기준일의 평택 설비 24대를 추가한 결과입니다. 두 사업장의 목표 달성률은 71.8%, 위험 후보는 10대입니다.</td>
+      <td colspan="2">
+        <p align="center"><strong>평택 설비 24대 추가 전후</strong><br />2026년 11월 1일 기준</p>
+        <table width="100%">
+          <tr>
+            <td width="50%" align="center" valign="top">
+              <strong>가져오기 전 · 화성</strong><br />
+              <a href="docs/media/screens/dashboard-before-import.png"><img src="docs/media/screens/dashboard-before-import.png" alt="가져오기 전 화성 설비 100대 대시보드" width="100%" /></a><br />
+              설비 <strong>100대</strong> · 목표 달성률 <strong>72.0%</strong> · 위험 후보 <strong>8대</strong>
+            </td>
+            <td width="50%" align="center" valign="top">
+              <strong>가져온 뒤 · 화성·평택</strong><br />
+              <a href="docs/media/screens/dashboard-after-import.png"><img src="docs/media/screens/dashboard-after-import.png" alt="평택 설비 24대를 추가한 뒤 화성·평택 설비 124대 대시보드" width="100%" /></a><br />
+              설비 <strong>124대</strong> · 목표 달성률 <strong>71.8%</strong> · 위험 후보 <strong>10대</strong>
+            </td>
+          </tr>
+        </table>
+      </td>
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/02-target-version.gif"><img src="docs/media/demos/02-target-version.gif" alt="소프트웨어 계열을 고르고 목표 버전 설정을 확인하는 과정" width="100%" /></a></td>
