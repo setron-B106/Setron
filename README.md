@@ -180,16 +180,6 @@
 
 [![SETRON ERD — 13개 테이블과 설비 관측·릴리스·변경 항목 사이의 관계](docs/media/design/SETRON-ERD.png)](docs/media/design/SETRON-ERD.png)
 
-**설비에서 출발**하면 특정 기준일에 설치돼 있던 버전을, **릴리스에서 출발**하면 그 버전에 포함된 변경 항목을 찾을 수 있습니다. 그림을 클릭하면 원본 크기로 볼 수 있습니다.
-
-| 확인할 내용 | 관련 테이블 |
-| --- | --- |
-| 그날 설비에 설치된 버전 | `equipment`가 설비를 식별합니다. `equipment_snapshot`은 기준일별 현황을, `equipment_version`은 그날 관측한 설치 버전을 보관합니다. |
-| 버전별 변경 사항과 적용 범위 | `release_version_item`이 릴리스 버전(`release_version`)과 변경 항목(`item`)을 연결하고, 적용 상태와 대상 모델 범위를 기록합니다. |
-| 위험 후보를 판정한 이유 | `risk_rule`은 결함이 있는 버전, 반드시 적용할 변경 항목, 규칙을 적용할 모델 범위를 저장합니다. |
-
-전체 테이블의 열과 제약 조건은 [MySQL 스키마](database/schema_mysql5619.sql)에서 확인할 수 있습니다.
-
 ---
 
 <a id="technology-details"></a>
