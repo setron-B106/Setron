@@ -2,19 +2,25 @@
 # 빌드: packaging/build_windows.ps1
 
 from pathlib import Path
+import sys
 
-from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules, copy_metadata
 
 block_cipher = None
 
 spec_dir = Path(SPECPATH).resolve()
+sys.path.insert(0, str(spec_dir))
+from windows_version import version_info
+
 database_dir = spec_dir.parent / "database"
 gui_script = spec_dir / "run_setron.py"
+metadata_dir, metadata_target = copy_metadata("setron")[0]
 
 analysis = Analysis(
     [str(gui_script)],
     pathex=[str(spec_dir.parent / "src")],
     datas=[
+        (str(Path(metadata_dir) / "METADATA"), metadata_target),
         *collect_data_files("setron"),  # ui/assets의 아이콘·폰트
         (str(database_dir / "schema_mysql5619.sql"), "database"),
     ],
@@ -33,8 +39,15 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name="SETRON",
+    version=version_info("SETRON"),
     console=False,
     icon=str(spec_dir.parent / "src" / "setron" / "ui" / "assets" / "setron-window-icon.ico"),
 )
 # 빈 DB 스키마 설치 도구는 build_schema_db.py에서 별도 생성한다.
-coll = COLLECT(exe, analysis.binaries, analysis.datas, name="SETRON")
+# PyInstaller also collects distribution metadata when it detects version("setron").
+# Only METADATA is needed at runtime; editable install records contain local paths.
+public_data = [
+    entry for entry in analysis.datas
+    if Path(entry[0]).parts[0] != metadata_target or Path(entry[0]).name == "METADATA"
+]
+coll = COLLECT(exe, analysis.binaries, public_data, name="SETRON")
