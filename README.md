@@ -55,14 +55,14 @@
 
 <table>
   <tr>
-    <td align="center" width="33%">{공란}<br /><strong>박호진</strong><br />팀장 · AI 및 데이터<br /><a href="https://github.com/hohojinjin"><code>hohojinjin</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>김보경</strong><br />프론트엔드<br /><a href="https://github.com/BooGyya"><code>BooGyya</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>임세희</strong><br />프론트엔드<br /><a href="https://github.com/1lights1"><code>1lights1</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/hohojinjin.jpg" height="128" alt="박호진 프로필 사진" /><br /><strong>박호진</strong><br />팀장 · AI 및 데이터<br /><a href="https://github.com/hohojinjin"><code>hohojinjin</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/BooGyya.jpeg" height="128" alt="김보경 프로필 사진" /><br /><strong>김보경</strong><br />프론트엔드<br /><a href="https://github.com/BooGyya"><code>BooGyya</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/1lights1.jpg" height="128" alt="임세희 프로필 사진" /><br /><strong>임세희</strong><br />프론트엔드<br /><a href="https://github.com/1lights1"><code>1lights1</code></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%">{공란}<br /><strong>황민정</strong><br />프론트엔드<br /><a href="https://github.com/alswjd131313"><code>alswjd131313</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>김진광</strong><br />백엔드<br /><a href="https://github.com/Kim-jin-gwang"><code>Kim-jin-gwang</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>김지훈</strong><br />백엔드<br /><a href="https://github.com/2hnK"><code>2hnK</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/alswjd131313.png" height="128" alt="황민정 프로필 사진" /><br /><strong>황민정</strong><br />프론트엔드<br /><a href="https://github.com/alswjd131313"><code>alswjd131313</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/Kim-jin-gwang.jpg" height="128" alt="김진광 프로필 사진" /><br /><strong>김진광</strong><br />백엔드<br /><a href="https://github.com/Kim-jin-gwang"><code>Kim-jin-gwang</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/2hnK.jpg" height="128" alt="김지훈 프로필 사진" /><br /><strong>김지훈</strong><br />백엔드<br /><a href="https://github.com/2hnK"><code>2hnK</code></a></td>
   </tr>
 </table>
 
