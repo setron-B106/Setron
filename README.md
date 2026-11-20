@@ -1,639 +1,320 @@
-# S15P31B106
+<div align="center">
+  <p>{공란}</p>
+  <h1>SETRON</h1>
+  <h3>반도체 설비 소프트웨어 버전 관리 도구</h3>
+  <p>어느 설비에 업데이트가 필요한지 찾고, 그 이유를 버전 이력과 릴리스 노트에서 확인합니다.</p>
+  <p>
+    <strong>팀</strong> SSAFY 대전 B106 · SEMES 연계 프로젝트<br />
+    <strong>개발 인원</strong> 6명<br />
+    <strong>개발 기간</strong> 2026년 10월 ~ 11월<br />
+    <strong>플랫폼</strong> Windows 데스크톱
+  </p>
+  <p><a href="exec/시연시나리오.md">📋 시연 시나리오</a> · <a href="#features">🖥️ 서비스 화면</a></p>
+  <p>{공란}</p>
+</div>
 
-> 문서 기준: 2026-11-16, develop `f0cfc8d`. 고객사(SEMES) 인계용으로 현재 코드에 맞게 고쳤습니다. 아래 "작업 단위 2~7", "B-1~B-4", "B-2 수정 화면 공통 기반" 절은 개발 단계 기록이며, 그 절의 "합성 예시"·"DB 미연결" 표현은 당시 기준입니다. 지금 동작은 이 머리말과 [실행](#실행) 절을 따릅니다.
+---
 
-setron은 설비 소프트웨어 버전 및 Release Item을 관리하는 Python 기반 Windows 데스크톱 애플리케이션입니다. PySide6로 화면을 구성하며 SQLAlchemy와 PyMySQL로 각 PC의 MySQL에 연결합니다. 현재 Excel 읽기는 xlwings를 사용하며, pandas와 openpyxl은 데이터 처리와 XLSX 출력에, python-docx는 AI 분석 보고서의 DOCX 출력에 사용합니다.
+## 📑 목차
 
-현재 구현 범위는 다음과 같습니다.
+- [서비스 소개](#service-introduction)
+- [팀원 소개 및 역할](#team)
+- [주요 기능](#features)
+- [기술 스택](#technology-stack)
+- [시스템 아키텍처](#system-architecture)
+- [ERD](#erd)
+- [핵심 기술](#technology-details)
+- [API 명세](#api-and-erd)
+- [개발자 가이드](#getting-started)
+- [디렉터리 구조](#directory-structure)
+- [프로젝트 문서와 협업 규칙](#project-guide)
 
-- 업무 화면: 대시보드, 버전 히트맵(설비 목록·상세 포함), 버전 리플레이, 아이템 매니저, AI 분석, 데이터 가져오기, 데이터 내보내기, 데이터 관리, 보고서, 설정.
-- DB 연결: `SETRON_DB_*` 설정이 있으면 모든 화면이 각 PC의 MySQL 5.6.19 자료를 읽고 저장합니다. 설정이 없으면 합성 예시 자료로 시작하고, 가져오기 저장은 메모리에만 합니다.
-- 가져오기: 사용자가 열어 둔 Excel 창에서 읽기 → 규칙 추출(정해진 양식) 또는 AI 추출 → 검토·수정 → DB 저장. SQL 백업 가져오기도 지원합니다.
-- 계산: 버전 비교·N 단계(N 그룹), 집계·적용률, Item 포함·적용 설비, 위험·노후도·우선순위, 참고 예측.
-- 출력: 현황 Excel, 관리값 요약 Excel, DB 전체 SQL, AI 분석 보고서(Word·PDF).
-- AI: OpenAI 호환 API 클라이언트. 설정이 없으면 예제 응답을 씁니다. 개발 중 실제 호출은 SSAFY GMS로만 확인했고, 사내 AI API로는 확인하지 않았습니다.
-- 로그인은 구현하지 않았습니다.
+---
 
-DB는 테이블 13개이며 스키마는 `database/schema_mysql5619.sql`입니다.
+<a id="service-introduction"></a>
 
-## Excel 가져오기 현황
+## 💡 서비스 소개
 
-`src/setron/infrastructure/excel_reader.py`는 사용자가 실행해 둔 Excel에 연결해 열린 통합문서·시트 목록과 선택한 시트의 사용 영역을 읽습니다. `list_open_workbooks()`의 `name`·`sheet_names`·`app_pid`·`full_name`으로 대상을 선택하고, `read_sheet(name, sheet_name, app_pid=app_pid, full_name=full_name)`으로 읽습니다. 프로세스 번호와 선택 당시의 전체 이름은 필수입니다. 선택한 프로세스만 조회하므로 다른 창의 연결 오류가 해당 파일 읽기를 막지 않습니다. 읽기 전후에 전체 이름을 검증하며, 다른 폴더의 동명 파일로 바뀌면 `WorkbookSelectionChangedError`로 다시 선택하도록 알립니다. 비교 과정에서 파일을 직접 열거나 경로를 현재 작업 폴더에 맞춰 추정하지 않습니다.
+**SETRON은 설비에 설치된 소프트웨어 버전과 릴리스별 변경 사항을 한곳에서 보여 줍니다.**
 
-가져오기 화면도 파일명·프로세스 번호·전체 이름을 함께 선택 키로 보존해 읽기에 전달합니다. 동명 파일은 목록에 경로와 Excel 프로세스 번호를 함께 표시하며, 목록 순서가 바뀌어도 같은 선택 정보를 유지합니다. 데모와 테스트용 Excel 객체도 실제 읽기 API와 같은 필수 인자를 사용합니다.
+업데이트가 필요한 설비를 찾으려면 두 자료가 필요합니다. 설비 현황표에는 점검일에 설치돼 있던 버전이, 릴리스 노트에는 각 버전에서 추가한 기능과 수정한 결함이 기록됩니다. SETRON에서는 대시보드에서 목표 버전에 미달한 설비를 찾은 뒤, 아이템 매니저에서 그 설비에 아직 반영되지 않은 수정 사항을 확인할 수 있습니다.
 
-읽기 결과 `SheetData`는 원본 셀 값·시트명·사용 영역의 시작 좌표·병합 범위와 저장 확인창에 표시할 `workbook_name`을 전달합니다. `address_of(i, j)`로 0부터 시작하는 표 인덱스의 원본 셀 주소를 확인합니다. 병합된 빈 칸은 원본대로 유지하며, `filled_values()`는 병합 값을 펼친 별도 표를 만듭니다. Excel 오류 셀은 `#N/A` 같은 문자열로 전달해 빈 셀과 구분합니다. 파일명은 이번 가져오기의 확인용이며 이를 위한 DB 파일명 기록은 추가하지 않습니다.
+### SETRON이 제공하는 가치
 
-Excel 미실행·연결 실패·선택 파일/시트 없음·동일 파일명 중복·시트 읽기 실패는 각각 다른 오류로 구분합니다. 시트 목록이나 값·좌표·병합 범위를 읽다가 COM 연결이 끊겨도 시트가 없다는 오류로 바꾸지 않습니다. 가져오기 화면에서 전체 검토·검증과 파일명 확인을 마친 뒤 BE-009의 DB 저장 경로로 연결합니다.
+| 현장에서 궁금한 점 | SETRON에서 확인하는 방법 |
+| --- | --- |
+| 어느 라인부터 살펴봐야 할까? | 대시보드에서 라인별 목표 달성률을 비교하고, 목표에 미달한 설비 목록을 엽니다. |
+| 이 설비는 왜 업데이트 대상일까? | 설비 상세에서 관측된 버전 이력을 보고, 아이템 매니저에서 필요한 수정 사항의 적용 여부를 확인합니다. |
+| 지난 점검 이후 무엇이 달라졌을까? | 버전 리플레이로 관측 날짜를 바꿔 가며 달성률과 설비별 버전 분포를 비교합니다. |
 
-현재 xlwings 연결 방식은 제한된 보기(Protected View) 창을 지원하지 않습니다. 목록 조회 시 일부 창이나 파일의 조회에 실패해도 정상 파일 목록은 반환하고, 실패는 `ExcelDiscoveryWarning`으로 전달합니다. 가져오기 화면은 이 경고를 수집해 일부 파일을 확인하지 못했다는 사실을 표시합니다. 선택 가능한 파일이 없으면 원인에 따라 `ExcelProtectedViewError` 또는 `ExcelConnectionError`를 발생시킵니다. 앱이 제한된 보기를 해제하거나 파일 차단·보안 설정을 변경하지 않습니다.
+---
 
-실제 Excel 연동에는 Windows용 데스크톱 Excel이 필요합니다. 파일 선택창에서 XLSX 파일을 직접 읽는 방식은 아직 구현되어 있지 않습니다. 현재 모듈은 파일을 서버에 업로드하거나 앱으로 복사하지 않고, 실행 중인 Excel에서 값을 읽습니다.
+<a id="team"></a>
 
-## SQL 가져오기
+## 👥 팀원 소개 및 역할
 
-**데이터 가져오기 → SQL**에서 **데이터 내보내기 → DB 전체 SQL**로 저장한 `.sql` 파일을 선택합니다. 대상은 SETRON 관리 테이블을 설치한 현재 연결 DB입니다. **신규 항목만 추가**는 일치하는 기존 항목을 유지합니다. **같은 항목 덮어쓰기**는 일치하는 항목을 파일 값으로 갱신하며, 같은 호기·기준일의 PM과 적용 버전도 파일 구성에 맞춥니다. 검토 화면에서 변경 건수를 확인한 뒤 적용합니다.
+<table>
+  <tr>
+    <td align="center" width="33%">{공란}<br /><strong>박호진</strong><br />팀장 · AI 질문 해석과 조회 조건 검증<br /><a href="https://github.com/hohojinjin"><code>hohojinjin</code></a></td>
+    <td align="center" width="33%">{공란}<br /><strong>김보경</strong><br />버전 리플레이 · 보고서와 Excel 출력<br /><a href="https://github.com/BooGyya"><code>BooGyya</code></a></td>
+    <td align="center" width="33%">{공란}<br /><strong>김진광</strong><br />Excel 원본 읽기 · 버전 비교와 단계 계산<br /><a href="https://github.com/Kim-jin-gwang"><code>Kim-jin-gwang</code></a></td>
+  </tr>
+  <tr>
+    <td align="center">{공란}<br /><strong>김지훈</strong><br />데이터 관리 · PC 간 데이터 병합 · Windows 배포<br /><a href="https://github.com/2hnK"><code>2hnK</code></a></td>
+    <td align="center">{공란}<br /><strong>임세희</strong><br />아이템 매니저 · 위험 판정 근거 표시<br /><a href="https://github.com/1lights1"><code>1lights1</code></a></td>
+    <td align="center">{공란}<br /><strong>황민정</strong><br />대시보드 · 버전 히트맵 · 목표 버전 설정 화면<br /><a href="https://github.com/alswjd131313"><code>alswjd131313</code></a></td>
+  </tr>
+</table>
 
-## AI API 설정
+---
 
-`infrastructure/ai_client.py`의 `OpenAICompatibleChatClient`는 기존 `ChatClient` 계약을 구현합니다. Excel 추출·질문 해석·분석 서비스에 같은 방식으로 전달하며, GMS와 사내 OpenAI 호환 서버를 바꿀 때는 환경변수만 변경합니다. [GMS 가이드](https://gms.ssafy.io/web/guide/quickstart)의 OpenAI 경로와 [공식 SDK](https://developers.openai.com/api/reference/python)의 `base_url` 설정을 사용합니다.
+<a id="features"></a>
 
-| 환경변수 | 개발용 GMS | 사내 AI |
+## ✨ 주요 기능
+
+| 기능 | 설명 |
+| --- | --- |
+| 데이터 가져오기 | 열려 있는 Excel 시트를 읽고 추출한 값을 검토한 뒤 저장합니다. |
+| 대시보드와 버전 히트맵 | 사업장과 라인별 달성률을 비교하고 목표에 미달한 설비를 찾습니다. |
+| 아이템 매니저 | 릴리스에 포함된 변경 항목(Item)을 검색하고 설비별 적용 여부를 확인합니다. |
+| 버전 리플레이 | 과거 관측 기록을 날짜순으로 재생해 버전 분포가 어떻게 달라졌는지 살펴봅니다. |
+| AI 분석과 보고서 | 자연어로 설비 현황을 묻고, 조회 결과와 그래프를 Word 또는 PDF로 내보냅니다. |
+| 데이터 관리와 내보내기 | 설비·버전 정보를 정정하고, 현황을 Excel로 출력하거나 관리 데이터를 SQL로 백업합니다. |
+
+### 1. Excel에서 읽고 원본과 대조하기
+
+| 시트 선택 | 추출 결과 검토 | 저장 |
+| :---: | :---: | :---: |
+| {공란} | {공란} | {공란} |
+| 열어 둔 통합문서와 시트를 고릅니다. | 검토 표의 값을 선택해 원본 셀과 대조합니다. | 오류를 수정하고 기준일과 사업장을 확인한 뒤 저장합니다. |
+
+### 2. 라인 현황에서 개별 설비까지 살펴보기
+
+| 대시보드 | 버전 히트맵 | 설비 상세 |
+| :---: | :---: | :---: |
+| {공란} | {공란} | {공란} |
+| 기준일과 라인을 골라 목표 달성률을 확인합니다. | 설비별 설치 버전을 실제 버전명이나 목표 대비 단계로 봅니다. | 설비를 선택해 관측 이력과 판정 근거를 읽습니다. |
+
+### 3. 릴리스의 변경 사항으로 업데이트 대상 찾기
+
+<table>
+  <tr>
+    <td align="center" width="40%">{공란}<br /><strong>아이템 매니저</strong></td>
+    <td><strong>변경 항목 검색</strong><br />기능명이나 Jira 코드로 릴리스에 포함된 항목을 찾습니다.<br /><br /><strong>적용 설비 확인</strong><br />변경 항목을 선택하면 적용 설비와 미적용 설비를 나눠 볼 수 있습니다.<br /><br /><strong>위험 기준 등록</strong><br />기준 버전과 판정 조건을 정하면 해당하는 설비가 위험 후보로 표시됩니다.</td>
+  </tr>
+</table>
+
+### 4. 날짜별로 버전 변화 비교하기
+
+| 달성률 추이 | 날짜별 히트맵 | 재생 |
+| :---: | :---: | :---: |
+| {공란} | {공란} | {공란} |
+| 조회 기간에 목표 달성률이 바뀐 시점을 찾습니다. | 같은 날짜의 분포를 사업장·라인·설비군별로 봅니다. | 관측 날짜를 순서대로 넘기거나 원하는 날에서 멈춥니다. |
+
+### 5. 자연어로 조회하고 보고서 만들기
+
+| 질문 | 판단 근거 | 보고서 |
+| :---: | :---: | :---: |
+| {공란} | {공란} | {공란} |
+| “버전 통일률이 가장 낮은 라인을 분석해 줘”처럼 묻습니다. | 해석된 조회 조건을 열어 답변이 어느 범위의 설비를 다루는지 확인합니다. | 결과를 미리 보고 표와 그래프를 Word 또는 PDF로 저장합니다. |
+
+### 6. 데이터 정정과 내보내기
+
+| 업무 | 처리 내용 |
+| --- | --- |
+| 관측 기록 정정 | 설비와 관측일을 선택하고 기존 값과 수정할 값을 비교합니다. |
+| Excel 출력 | 조회한 설비 현황과 관리값 요약을 Excel 파일로 저장합니다. |
+| SQL 백업과 가져오기 | 관리 데이터를 SQL로 내보냅니다. 다시 가져올 때는 추가·갱신될 건수를 검토한 뒤 적용합니다. |
+
+---
+
+<a id="technology-stack"></a>
+
+## 🛠️ 기술 스택
+
+| 분류 | 기술 |
+| --- | --- |
+| 언어 · 화면 | Python 3.13 · PySide6 |
+| 데이터베이스 | MySQL 5.6.19 · SQLAlchemy · PyMySQL |
+| Excel 연동 · 출력 | xlwings · pandas · openpyxl |
+| 문서 생성 | python-docx · Qt PDF 출력 |
+| AI 연동 | OpenAI Python SDK · OpenAI 호환 Chat Completions API |
+| 개발 · 배포 | uv · Docker Compose · pytest · PyInstaller |
+
+---
+
+<a id="system-architecture"></a>
+
+## 🏗️ 시스템 아키텍처
+
+### 서비스 구성
+
+{공란}
+
+Windows 앱은 **화면**, **업무 로직**, **외부 연동**으로 나뉩니다. Excel에서 읽은 행은 검토 화면을 거쳐 MySQL에 저장됩니다. 대시보드, 히트맵, 리플레이와 보고서는 이 관측 기록을 함께 사용합니다.
+
+<a id="db-연동-개발-기준"></a>
+
+### 인프라 구성
+
+{공란}
+
+현장 PC에서는 앱이 Windows에 설치된 MySQL에 접속합니다. 개발 PC에서는 Docker Compose로 개발 DB와 테스트 DB를 따로 실행합니다. 두 환경 모두 같은 스키마를 사용하며, 앱은 환경 변수에서 접속할 DB를 읽습니다. [구성 요소와 모듈별 책임](docs/architecture.md)
+
+---
+
+<a id="erd"></a>
+<a id="공통-스키마"></a>
+
+## 🗄️ ERD
+
+{공란}
+
+13개 테이블의 중심에는 **설비의 관측 이력**과 **버전별 변경 항목**이 있습니다.
+
+| 알고 싶은 내용 | 데이터 관계 |
+| --- | --- |
+| 특정 날짜에 어떤 버전이 설치돼 있었나? | `equipment`에서 설비를 식별하고, `equipment_snapshot`과 `equipment_version`에서 관측일과 설치 버전을 찾습니다. |
+| 특정 릴리스에는 무엇이 바뀌었나? | `release_version`에서 버전을 찾고, `release_version_item`을 거쳐 해당 버전의 변경 항목(`item`)을 확인합니다. |
+
+각 테이블의 기본 키와 외래 키는 스키마에 정의돼 있습니다. [MySQL 스키마](database/schema_mysql5619.sql)
+
+---
+
+<a id="technology-details"></a>
+
+## 🔬 핵심 기술
+
+### 1. 원본 셀까지 추적하는 Excel 가져오기
+
+xlwings가 실행 중인 Excel에서 셀 값과 병합 범위, 시작 좌표를 읽습니다. 정해진 양식은 규칙으로 해석하고, 양식이 다른 시트는 AI 추출을 선택할 수 있습니다. 검토자는 추출값을 원본 셀과 대조해 잘못 읽힌 버전을 바로잡은 뒤 저장합니다.
+
+### 2. 설비군마다 다른 버전을 공통 기준으로 비교
+
+담당자는 버전 계열별로 목표 단계 **N**을 정합니다. SETRON은 관측된 버전을 릴리스 순서와 대조해 목표 이상인지, 한 단계 또는 두 단계 이상 뒤처졌는지 표시합니다. 버전 정보가 빠졌거나 릴리스 노트에서 찾을 수 없는 설비는 ‘확인 필요’로 구분합니다.
+
+### 3. AI가 질문을 해석하고 앱이 수치를 계산
+
+AI는 질문에서 사업장, 설비군, 버전 조건과 필요한 분석을 읽어냅니다. 앱은 이 조건을 검증하고 저장된 기록에서 설비 목록과 집계를 구합니다. 사용자는 답변의 판단 근거를 펼쳐 어떤 조건이 적용됐는지 확인할 수 있습니다.
+
+---
+
+<a id="api-and-erd"></a>
+
+## 📋 API 명세
+
+SETRON은 Windows 앱에서 MySQL과 Excel에 직접 연결합니다. 외부 HTTP API는 AI 추출과 자연어 질문에 사용합니다.
+
+| 연동 | 호출 방식 | 명세 · 구현 |
 | --- | --- | --- |
-| `SETRON_AI_BASE_URL` | `https://gms.ssafy.io/gmsapi/api.openai.com/v1` | 전달받은 기본 API 주소. `/chat/completions`는 붙이지 않음 |
-| `SETRON_AI_API_KEY` | 발급받은 GMS Key | 사내 인증 키. 서버가 허용한다고 확인된 경우 `EMPTY` |
-| `SETRON_AI_MODEL` | 사용 가능한 모델명. 교육 자료 평가에 사용한 값 `gpt-6.1-sol` | 사내 서버가 제공하는 모델명. 전달받은 예시 `gpt-4` |
-| `SETRON_AI_TIMEOUT` | 코드 기본 60초. `.env.example`은 전체 시트 평가에 맞춰 180초 | 선택 사항. 코드 기본 60초 |
+| AI 추출·분석 | `POST {SETRON_AI_BASE_URL}/chat/completions` | [서비스 설정](exec/외부서비스.md) · [Python 클라이언트](src/setron/infrastructure/ai_client.py) |
+| Excel 읽기 | xlwings로 열린 통합문서·시트를 조회하고 셀을 읽음 | [Excel 읽기 모듈](src/setron/infrastructure/excel_reader.py) |
+| MySQL 저장·조회 | SQLAlchemy와 PyMySQL로 로컬 DB에 연결 | [DB 연결 모듈](src/setron/infrastructure/database.py) · [테이블 정의](database/schema_mysql5619.sql) |
 
-개발 설정은 `.env.example`, 사내 Windows 설정은 `setron.env.example`을 참고합니다. 기존 `.env`를 덮어쓰지 말고 필요한 항목을 추가하세요. 실제 키는 Git에서 제외된 환경 파일에만 보관합니다. 소스 실행 시 Docker 설정은 `uv run --locked --env-file .env ...`, Windows 설정은 `uv run --locked --env-file dist/SETRON/setron.env ...`로 불러옵니다. 필수 AI 설정이 없으면 `AIConfigError`가 발생하며, 다른 `OPENAI_*` 설정이나 기본 OpenAI 서버로 대체하지 않습니다.
+---
 
-```python
-from setron.features.ai.service import parse_question
-from setron.infrastructure.ai_client import OpenAICompatibleChatClient
+<a id="getting-started"></a>
 
-with OpenAICompatibleChatClient.from_env() as client:
-    result = parse_question(client, "화성 C3 설비의 버전 현황을 보여줘")
-    # Excel은 extract_sheet_data(client, kind, sheet_data), 분석은 analyze(client, question, facts).
-    # result.ok, result.status, result.message를 확인한 뒤 result.data를 사용합니다.
-```
+## 🚀 개발자 가이드
 
-SDK 자동 재시도는 끕니다. 연결·HTTP 오류, 시간 초과와 호출 제한은 기존 공통 오류로 변환하고, 빈 답변·잘린 답변·거부·도구 호출 등 텍스트 작업을 완료하지 못한 응답은 `INVALID_RESPONSE`로 전달합니다. 성공한 실제 API 응답은 `ResponseSource.REAL`, 모의 응답은 `EXAMPLE`로 구분합니다. 서버별 지원 여부가 확인되지 않은 JSON 강제 출력·도구 호출 옵션은 전송하지 않습니다.
+<details>
+<summary><strong>Windows에서 설치하고 실행하기</strong></summary>
 
-클라이언트는 재사용하고 종료 시 `close()` 또는 `with` 문으로 연결을 정리합니다. 호출은 동기 방식이므로 UI에 연결할 때는 작업 스레드에서 실행해야 합니다. 모의 HTTP 전송 테스트는 실제 서버 호출이나 모델의 추출 정확도 검증을 대신하지 않습니다.
+### 사전 준비
 
-## AI Excel 추출과 검토 (BE-007)
+Windows 10 이상(64비트), Git, Python 3.13, uv를 준비합니다. 예시 데이터로 화면을 둘러볼 수 있습니다. 실제 파일을 가져오려면 데스크톱 Excel이 필요합니다. 개발용 MySQL을 실행하려면 Docker Desktop에서 Linux 엔진을 켭니다.
 
-`features/extraction/service.py`의 `extract_sheet_data(client, kind, sheet_data)`는 BE-006에서 읽은 `SheetData`를 기존 AI 호출 계층에 전달하고, 반환값을 원본 셀과 대조해 검토 자료를 만듭니다. 설비 현황과 릴리즈 노트를 처리하며 병합 셀의 실제 앵커, 호기·PM·SW 연결, C3 UI와 KCTC 구조 구분을 보존합니다.
-
-`result.ok`를 확인한 뒤 `result.data.rows`에서 정리한 `values`, AI 원문 `raw_values`, 셀 위치와 실제 값 `sources`를 확인합니다. 원본과 일치하지 않는 값은 검토값에서 제외하고 `issues`에 사유를 남깁니다. `needs_review`와 `issues`를 확인해 보완해야 하며, `OK`는 검토 자료 생성 성공을 뜻합니다. 이후 BE-008의 전체 검증과 BE-009의 검토 후 저장 단계를 거칩니다.
-
-GMS 교육 자료의 실제 추출과 모델 비교는 [BE-007 테스트 결과](docs/test-results/be-007-ai-extraction.md)에 기록했습니다. 원본 스냅샷·정답·실제 응답·오류별 대조표를 함께 보관하며, 모델의 표기 차이와 후처리 차단도 구분합니다.
-
-## 개발 환경 준비
-
-Windows와 Python 3.13.x를 기준으로 개발합니다. Python 버전은 `.python-version`과 `pyproject.toml`에 지정하고, 패키지는 [uv](https://docs.astral.sh/uv/getting-started/installation/)로 관리합니다.
-
-처음 저장소를 받은 팀원은 Git, Python 3.13, uv와 Docker Desktop을 설치한 뒤 아래 [팀원 최초 설정 순서](#팀원-최초-설정-순서)를 따릅니다.
-
-uv를 설치한 뒤 저장소 루트에서 PowerShell로 다음 명령을 실행합니다.
+### 저장소 받기
 
 ```powershell
+git clone https://github.com/setron-B106/Setron.git
+cd Setron
 uv sync --locked
 ```
 
-`uv.lock`에 기록된 버전으로 `.venv`를 만들고 프로젝트·실행 의존성·개발용 pytest를 설치합니다. 프로젝트는 편집 가능 모드로 설치되므로 `src/`의 코드 수정이 바로 반영됩니다. 명령을 실행할 때 가상환경을 별도로 활성화할 필요는 없습니다.
-
-의존성을 추가할 때는 `uv add <패키지>`, 개발용 의존성은 `uv add --dev <패키지>`를 사용하고 `pyproject.toml`과 `uv.lock`을 함께 커밋합니다.
-
-## Docker로 개발·테스트 DB 실행
-
-개발 PC의 MySQL 5.6.19는 Docker Compose로 실행합니다. Windows에서 Docker Desktop의 Linux 엔진을 시작한 뒤 저장소 루트의 PowerShell에서 아래 명령을 사용합니다. 실제 사용 PC의 앱은 Windows에 설치된 MySQL에 접속하며, 이 Compose는 개발·테스트용입니다.
-
-`mysql:5.6.19` 공식 이미지 태그가 없어 Oracle 보관소의 5.6.19 배포 파일을 받아 전용 이미지를 빌드합니다. Dockerfile은 배포 파일의 체크섬과 서버 버전을 확인합니다. 최초 빌드에는 인터넷 연결과 약 306MB의 다운로드가 필요합니다.
-
-| 용도 | 서비스 | Windows 접속 주소 | DB / 일반 계정 | 데이터 볼륨 |
-| --- | --- | --- | --- | --- |
-| 개발 | `mysql-dev` | `127.0.0.1:13306` | `setron_dev` / `setron_app` | `mysql5619_dev_data` |
-| 테스트 | `mysql-test` | `127.0.0.1:13307` | `setron_test` / `setron_test` | `mysql5619_test_data` |
-
-컨테이너·계정·포트·볼륨을 용도별로 분리합니다. 포트는 이 PC의 `127.0.0.1`에만 공개합니다. 서버는 InnoDB, utf8mb4와 Windows의 기본 테이블명 처리에 맞춘 `lower_case_table_names=1`을 사용합니다.
-
-개발 DB는 앱을 개발하면서 입력한 데이터를 보관합니다. 테스트 DB는 자동 검증에 사용하며 테스트가 테이블을 만들고 지우거나 오류를 일으키고 연결을 끊을 수 있습니다. 두 DB를 분리해 이런 검증이 개발 데이터와 작업 중인 연결에 영향을 주지 않도록 합니다. 테스트 DB는 검증할 때만 실행하면 됩니다.
-
-### DB 연동 개발 기준
-
-개발과 자동화 테스트에서는 Docker의 MySQL 5.6.19를 사용하고, 실제 사용 PC에서는 Windows에 설치된 MySQL 5.6.19에 접속하도록 개발합니다. Python 앱과 Excel은 두 환경 모두 Windows에서 실행합니다.
-
-앱의 DB 접속 코드는 공통으로 사용하고, 호스트·포트·DB 이름·계정·비밀번호는 `SETRON_DB_*` 환경변수에서 읽습니다. 개발 DB는 `127.0.0.1:13306`, Windows DB는 해당 서버 주소와 설정된 포트(기본 `3306`)를 지정합니다. Windows DB가 앱과 같은 PC에 있으면 주소는 `127.0.0.1`입니다. 접속 설정을 바꾸면 같은 코드로 대상 DB를 전환할 수 있으며, 앱의 DB 연동은 Docker 명령이나 컨테이너 내부 경로에 의존하지 않습니다.
-
-SQL과 스키마는 MySQL 5.6.19에서 지원하는 기능을 기준으로 작성합니다. Windows 서버에도 같은 업무 스키마를 적용하고 InnoDB, utf8mb4와 `lower_case_table_names=1`, 앱 계정의 권한을 확인해야 합니다. 접속 설정을 바꾸는 것만으로 스키마나 데이터가 이전되지는 않습니다.
-
-실사용 접속 설정은 개발·테스트용 `.env`와 구분해 보관하고 실행 시 앱의 환경변수로 불러옵니다. 실사용 전에는 Windows에 설치된 MySQL에서도 조회·저장, 저장 실패 시 전체 취소와 삭제 전 위험 근거 보존을 확인합니다.
-
-### 팀원 최초 설정 순서
-
-Windows PowerShell에서 저장소 최상위 폴더를 기준으로 실행합니다. Docker Desktop은 Linux 엔진이 실행 중이어야 합니다. 아래 접속 명령은 위 표의 기본 DB·계정을 기준으로 하므로 `.env`에서 바꿨다면 명령도 같은 값으로 맞춥니다.
-
-1. **최신 develop과 Python 의존성 받기**
-
-   작업 중인 변경이 있다면 먼저 커밋하거나 보관한 뒤 진행합니다.
-
-   ```powershell
-   git fetch origin
-   git switch develop
-   git pull --ff-only origin develop
-   uv sync --locked
-   ```
-
-2. **.env 만들기**
-
-   기존 파일이 없을 때만 예시를 복사합니다.
-
-   ```powershell
-   if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-   notepad .env
-   ```
-
-   복사한 `.env`에서 비밀번호 네 개를 수정합니다. 다음은 로컬 개발용 예시이며, 나머지 접속 항목은 예시 파일의 기본값을 사용합니다.
-
-   ```dotenv
-   SETRON_DB_PASSWORD='dev_demo1234'
-   SETRON_DB_ROOT_PASSWORD='devroot_demo1234'
-   SETRON_TEST_DB_PASSWORD='test_demo1234'
-   SETRON_TEST_DB_ROOT_PASSWORD='testroot_demo1234'
-   ```
-
-   앱과 HeidiSQL은 일반 계정으로 접속하고 root 계정은 컨테이너 내부 관리에 사용합니다. 실제 `.env`는 Git에서 제외되므로 팀원마다 직접 만들고, 공유할 설정 항목은 `.env.example`에 반영합니다. 비밀번호의 `$` 등이 문자 그대로 전달되도록 작은따옴표를 유지합니다. MySQL 5.6의 계정명은 16자 이내이며 초기화 스크립트는 DB·계정 이름에 영문·숫자·밑줄을 허용합니다.
-
-   초기화된 볼륨이 있으면 `.env`의 비밀번호·계정·DB 이름을 바꿔도 기존 DB에 자동 반영되지 않습니다. 이 경우 DB의 계정·DB 설정도 별도로 변경해야 합니다.
-
-3. **Docker 이미지 빌드와 DB 실행**
-
-   ```powershell
-   # 설정 구문 확인. 비밀번호는 출력되지 않습니다.
-   docker compose --profile test config --quiet
-
-   # 개발·테스트가 공유하는 이미지를 한 번 빌드합니다.
-   docker compose build mysql-dev
-
-   docker compose up -d --wait mysql-dev
-   docker compose --profile test up -d --wait mysql-test
-   docker compose --profile test ps
-   ```
-
-   `--wait`는 DB가 쿼리를 받을 수 있을 때까지 기다립니다. 두 서비스가 `healthy`인지 확인합니다. 최초 실행에서는 빈 DB와 계정만 생성하며, 업무 테이블은 다음 단계에서 만듭니다.
-
-4. **빈 개발 DB에 스키마 최초 적용**
-
-   **개발 DB에 한 번만 적용합니다. 테스트 DB에는 직접 적용하지 않습니다.** 먼저 스키마를 개발 컨테이너로 복사하고 MySQL에 접속합니다.
-
-   ```powershell
-   docker compose cp ./database/schema_mysql5619.sql mysql-dev:/tmp/schema_mysql5619.sql
-   docker compose exec mysql-dev mysql --default-character-set=utf8mb4 --user=setron_app --password setron_dev
-   ```
-
-   비밀번호 입력 요청이 나오면 `.env`의 `SETRON_DB_PASSWORD` 값을 입력합니다. 접속 후 `mysql>` 프롬프트에서 다음을 실행합니다.
-
-   ```sql
-   SOURCE /tmp/schema_mysql5619.sql;
-   SHOW TABLES;
-   SELECT VERSION(), DATABASE();
-   exit;
-   ```
-
-   테이블 13개, 서버 버전 `5.6.19`, DB 이름 `setron_dev`를 확인합니다. 이미 스키마를 적용한 개발 DB에서는 이 단계를 생략합니다.
-
-5. **앱 연결 확인과 전체 테스트**
-
-   PowerShell로 돌아와 다음 명령을 실행합니다.
-
-   ```powershell
-   uv run --locked --env-file .env python -m setron.infrastructure.database
-   uv run --locked --env-file .env python -m pytest -q
-   ```
-
-   첫 명령에서 DB 연결 확인 메시지가 나오고, 전체 테스트가 통과하는지 확인합니다. 테스트는 `setron_test`에 스키마를 자동 적용하고 검증 후 생성한 테이블을 삭제합니다. 테스트 DB는 관리 테이블이 없는 상태로 두며, 개발 데이터를 저장하지 않습니다. 스키마는 프로젝트의 `database/schema_mysql5619.sql`을 자동으로 찾으므로 별도 스키마 경로 환경변수가 필요하지 않습니다.
-
-6. **작업 종료와 다음 실행**
-
-   ```powershell
-   # 두 DB 중지. 데이터는 유지합니다.
-   docker compose --profile test stop
-
-   # 다음 개발 시작
-   docker compose up -d --wait mysql-dev
-
-   # 테스트할 때 추가 실행
-   docker compose --profile test up -d --wait mysql-test
-   ```
-
-   다음부터는 이미지 빌드와 스키마 최초 적용을 생략하고 필요한 DB를 실행하면 됩니다. Dockerfile이나 초기화 스크립트를 수정했다면 아래 재빌드 안내를 따릅니다.
-
-### 공통 스키마
-
-개발·테스트·Windows MySQL의 최초 설치에는 프로젝트의 [database/schema_mysql5619.sql](database/schema_mysql5619.sql)을 공통으로 사용합니다. 스키마 변경은 이 파일에 반영합니다. 저장소에 포함돼 있으므로 개인 PC의 외부 문서 폴더나 별도 스키마 경로 설정이 필요하지 않습니다.
-
-HeidiSQL에서 **빈 대상 DB**를 선택하고 UTF-8로 SQL 파일 전체를 실행합니다. 13개 테이블과 기본 설정을 만들며, 기존 테이블에 덧씌우는 업그레이드 스크립트는 아닙니다. 스키마 생성에 필요한 권한과 앱 저장 서비스에서 검사해야 할 업무 규칙은 SQL 파일의 주석에 정리합니다.
-
-### 상태 확인과 접속
-
-```powershell
-# 컨테이너 상태와 공개 포트 확인
-docker compose --profile test ps
-
-# 이미지에 포함된 정확한 서버 버전 확인
-docker compose exec mysql-dev mysqld --version
-
-# 최근 서버 로그 확인
-docker compose logs --tail=100 mysql-dev
-
-# 개발 DB에 접속. .env에 적은 일반 계정 비밀번호를 입력합니다.
-docker compose exec mysql-dev mysql --default-character-set=utf8mb4 --user=setron_app --password setron_dev
-
-# 테스트 DB의 서버 버전과 DB 이름 확인
-docker compose --profile test exec mysql-test mysql --default-character-set=utf8mb4 --user=setron_test --password setron_test --execute="SELECT VERSION(), DATABASE();"
-```
-
-접속 명령의 DB·계정은 예시 값입니다. `.env`에서 바꿨다면 같은 값으로 맞춥니다. HeidiSQL로 확인할 때도 위 표의 Windows 주소와 일반 계정을 사용합니다. root 계정은 컨테이너 내부 관리와 상태 확인에 사용합니다.
-
-### 중지·재시작·제거
-
-```powershell
-# 두 DB 중지. 데이터 볼륨은 유지합니다.
-docker compose --profile test stop
-
-# 중지된 개발 DB 다시 시작
-docker compose up -d --wait mysql-dev
-
-# 컨테이너·네트워크 제거. 데이터 볼륨은 유지합니다.
-docker compose --profile test down
-```
-
-Dockerfile이나 초기화 스크립트를 수정했다면 `docker compose build mysql-dev`로 이미지를 다시 빌드하고 필요한 서비스를 `up -d --wait`로 재생성합니다.
-
-## DB 연결과 저장 처리 (BE-001)
-
-`src/setron/infrastructure/database.py`는 환경변수로 MySQL 접속 설정을 읽고 설정 오류, 접속 실패와 연결 후 저장 실패를 구분합니다. 접속마다 `STRICT_TRANS_TABLES`를 추가해 MySQL 5.6.19에서 길이를 넘는 값이 조용히 잘려 저장되지 않도록 합니다.
-
-### 접속 설정과 Windows MySQL
-
-`SETRON_DB_HOST`, `SETRON_DB_PORT`, `SETRON_DB_NAME`, `SETRON_DB_USER`, `SETRON_DB_PASSWORD`가 필수입니다. `SETRON_DB_CONNECT_TIMEOUT`은 연결 제한 시간(초)이며 생략하면 5초입니다. 테스트 DB에는 같은 항목을 `SETRON_TEST_DB_*`로 지정합니다. Compose의 `ROOT_PASSWORD` 설정은 DB 초기화와 상태 확인용이며 앱에서는 사용하지 않습니다.
-
-실제 환경 파일은 Git에서 제외됩니다. 소스 실행 시 uv의 `--env-file` 옵션으로 불러오거나 환경변수를 직접 설정합니다. 개발 DB에 접속하는지 다음 명령으로 확인할 수 있습니다.
-
-```powershell
-uv run --locked --env-file .env python -m setron.infrastructure.database
-```
-
-저장소에서 Windows MySQL 5.6.19를 사용할 때는 [Windows 패키지를 빌드](docs/windows-package.md)하고 `dist/SETRON/setron.env.example`을 같은 폴더에 `setron.env`로 복사한 뒤 DB 이름·일반 계정·비밀번호를 입력합니다. 기본 주소는 `127.0.0.1:3306`이며 해당 PC의 설정에 맞춥니다. 로컬 MySQL에 DB와 계정을 준비한 뒤 배포 폴더의 `prepare_demo_db.bat`(또는 `SETRON_DB_INIT.exe`) 메뉴로 시연 데이터를 넣거나(1) 자료를 비웁니다(2). 실제 업무용 DB는 1로 테이블을 만든 뒤 2로 자료를 비우거나, 배포 폴더의 `_internal/database/schema_mysql5619.sql`을 빈 DB에서 실행해 테이블만 만듭니다. 도구와 앱은 모두 `dist/SETRON/setron.env`를 사용합니다. 자세한 내용은 [docs/windows-package.md](docs/windows-package.md)에 있습니다(11-16 김지훈 개편).
-
-```powershell
-uv run --locked --env-file dist/SETRON/setron.env python -m setron.infrastructure.database
-```
-
-성공하면 확인 메시지와 종료 코드 0, 설정·접속 오류가 있으면 안내 메시지와 종료 코드 1을 반환합니다. Windows 설정에는 Compose용 root 비밀번호와 테스트 DB 설정이 필요하지 않습니다. Windows에 직접 설치된 MySQL의 실제 접속·저장 검증은 해당 환경이 준비된 뒤 진행합니다.
-
-### 업무 단위 저장
-
-업무 서비스는 `with database.transaction() as session:`으로 하나의 저장 요청 전체를 감싸고 모든 Repository에 같은 세션을 전달합니다. 정상 종료하면 한 번 commit하고, 작업 중 오류가 밖으로 전달되면 전체 변경을 rollback합니다. SQLAlchemy 저장 오류는 `DatabaseSaveError`, 업무 실행 전 접속 실패는 `DatabaseConnectionError`로 알리며 업무 검증 오류는 원래 예외를 유지합니다. 각 작업은 새 세션을 사용하고, 앱 종료 시 `database.dispose()`로 연결 풀을 정리합니다.
-
-Repository와 트랜잭션 블록 안에서는 `commit()`, `rollback()`, `close()`를 직접 호출하지 않습니다. 전체 취소를 보장하려면 업무 테이블은 InnoDB를 사용해야 합니다. 암묵적으로 commit하는 테이블 생성·변경 등의 DDL은 저장 업무 밖에서 수행합니다.
-
-최종 commit 중 연결이 끊겨 결과를 확인할 수 없으면 `DatabaseCommitUnknownError`로 구분합니다. 이때는 전체 취소로 단정하거나 자동 재시도하지 않고, 연결 복구 후 저장된 내용을 먼저 확인합니다.
-
-### 공통 저장 서비스
-
-`features/storage/`는 공통 스키마의 조회·저장, 입력 검증과 삭제 전 위험 근거 보존을 처리합니다. MySQL 5.6.19에 맞춰 JSON을 LONGTEXT로 저장하고 앱에서 JSON 구조·상태값·필수값을 검사합니다. 중첩 JSON 객체의 키도 문자열이어야 합니다. 호기 코드·버전 원문·PM명·설정 키는 UTF-8 VARBINARY로 저장해 대소문자와 뒤쪽 공백을 보존하고 조회 시 문자열로 복원합니다.
-
-```python
-from setron.features.storage.service import StorageService
-from setron.infrastructure.database import Database
-
-database = Database.from_env()
-try:
-    storage = StorageService(database)  # 공통 스키마를 적용한 뒤 생성합니다.
-    with storage.transaction() as tx:
-        equipment = tx.insert("equipment", {"equipment_code": "EQ-001"})
-        tx.update("equipment", {"equipment_id": equipment["equipment_id"]}, {"equipment_code": "EQ-002"})
-finally:
-    database.dispose()
-```
-
-릴리즈 버전 삭제와 릴리즈 교체 내부의 Item 삭제는 대상과 위험 규칙을 잠근 뒤 기존 위험 근거에 원문 정보를 추가하고 `UNRESOLVED`로 바꿉니다. 근거 보존과 삭제는 다른 변경과 같은 트랜잭션에서 수행하므로 중간 실패 시 함께 취소됩니다. 정수 ID와 숫자로만 된 ID 문자열을 지원하며, DB에서 읽은 기본키로 참조를 비교합니다.
-
-관리 데이터의 수정·삭제는 앱의 저장 서비스를 통해 수행합니다. HeidiSQL에서 직접 바꾸면 앱의 검증과 삭제 전 근거 보존을 거치지 않습니다. 설비 현황과 릴리즈·Item은 아래 업무 서비스의 검증을 사용합니다. 위험 범위·재가져오기 후 재계산 등 나머지 규칙은 각 후속 업무 서비스에서 구현합니다.
-
-## 설비·PM·버전 계열 저장 (BE-002)
-
-`features/equipment/`의 `EquipmentService`는 검토가 끝난 현황을 기존 공통 스키마에 저장하고 정확한 기준일로 다시 조회합니다. UI·AI 추출과는 독립적으로 사용할 수 있습니다.
-
-- `save_snapshots(tuple[SnapshotInput, ...])`: 같은 저장 요청 전체를 하나의 트랜잭션으로 처리합니다. 호기 코드는 전체 사업장에서 재사용하고, 기준일별 소속·원본 모델명·형상·개조 정보와 PM 구성을 따로 보존합니다.
-- `get_snapshot(equipment_code, base_date)`: 해당 날짜의 `StoredSnapshot`을 반환합니다. 기록이 없으면 `None`이며 이전 날짜나 현재값으로 채우지 않습니다. 날짜 간 동일 PM의 식별은 `equipment_id + pm_name`입니다.
-- `resolve_model(model_name, category)`: 등록 모델 중 확인된 이름을 찾습니다. 확정 별칭 `M5 → M-O5`만 허용하며 `M-O5 Prime`과 KCTC/Oxide의 O2를 임의로 합치지 않습니다. 대응이 없거나 여러 개면 확인을 요청하는 검증 오류를 반환합니다.
-
-`SnapshotInput`의 `software`는 `SoftwareInput` 목록이고, 각 SW의 `pms`에는 고정 위치와 확인된 모델 ID를 담은 `PmInput`을 지정합니다. 일반 설비는 PM 목록을 비우고 현황의 `group_id`를 지정합니다. 같은 현황·계열·버전 원문의 정확한 중복은 SW 한 행을 공유하며 PM 연결과 모든 원본 위치를 유지합니다. 같은 PM의 상충 값은 저장을 막고, 같은 계열의 다른 PM에 서로 다른 버전이 있는 경우에는 모두 저장한 뒤 `pm_mismatch_families`로 알려줍니다.
-
-모델·계열·릴리즈 ID는 원본 검토로 확인한 기존 등록값을 전달합니다. 릴리즈의 계열 일치와 모델/계열의 최상위 설비군을 검사하지만, 같은 설비군이라는 이유로 모델별 릴리즈 적용 가능성을 확정하지 않습니다. 미등록 SW는 원문과 계열을 보존하고 `release_version_id=None`으로 저장합니다. C3 형상은 원문 속성이며 계열을 자동 생성하거나 나누지 않습니다. 구UI/통합UI에는 각각 확인된 다른 계열 ID를 전달합니다. Memory/Foundry는 `None`을 허용하며 표시값은 `미확인`입니다.
-
-입력 작업은 먼저 공통 저장 서비스에 등록합니다. `EXCEL`이면 현황·SW·PM의 출처에 지정한 시트·셀이 `import_batch.raw_data`에 실제로 있어야 합니다. 출처는 필드별 `{sheet, cells}`이며 여러 시트에서 중복 추출한 필드는 이 객체들의 목록으로 보존합니다. 저장 중 입력 자료와 보관 원본은 바꾸지 않습니다. `MANUAL` 입력은 출처를 생략할 수 있습니다.
-
-`save_snapshots`는 신규 현황 전용이며 같은 호기·날짜를 중복 등록하지 않습니다. Excel 재가져오기는 아래 BE-009의 검토·저장 경로를 사용합니다. 사업장은 호기의 고정 소속이므로 다른 날짜를 입력하더라도 바꿀 수 없습니다. 라인 등 날짜별 정보는 해당 날짜의 검토 결과로 저장합니다.
-
-```powershell
-uv run --locked python -m pytest tests/test_equipment_validation.py -q
-# 기존 관리 테이블이 없는 전용 MySQL 5.6.19 테스트 DB 사용
-uv run --locked --env-file .env python -m pytest tests/test_equipment_mysql.py -q
-```
-
-## 날짜별 현황 저장·재가져오기 갱신 (BE-009)
-
-설비 현황 Excel은 사업장 단위로 검토합니다. `DatabaseImportSaver.load_reference((draft,))`가 기존 자료를 읽고, `build_save_request(draft, request_id, reference)`가 검토 기준을 포함한 요청을 만듭니다. `ImportValidationService.prepare()`로 여러 시트를 함께 검증할 수도 있습니다. 파일명 확인을 마친 요청을 `save(request)` 또는 `save_many(requests)`에 전달하면 이번 묶음 전체를 한 트랜잭션으로 저장합니다.
-
-- 기존 호기는 전체 사업장에서 고유한 호기 코드로 찾습니다. 모든 날짜의 소속 사업장을 확인하며, 다른 사업장 입력이나 일반 현황 파일 안의 여러 사업장 혼재는 오류로 보류합니다. 앱의 [관리값 요약 Excel](docs/management-export.md) 양식은 행별 사업장을 보존해 여러 사업장을 다시 가져올 수 있지만, 같은 호기의 사업장 충돌은 계속 차단합니다. 릴리즈 노트는 O2·O3 같은 모델·SW 계열 단위로 관리하며 사업장 검사를 적용하지 않습니다.
-- 새 설비는 함께 등록합니다. 같은 호기·날짜의 기존 현황은 검토 당시의 값과 같을 때만 갱신하며, 검토 이후 DB 값이 달라졌거나 기존값 조회에 실패하면 다시 검토해야 합니다.
-- 경로·Excel 프로세스가 다른 동명 파일은 임시 식별자로 구분합니다. 검토용 식별자는 DB에 저장하지 않습니다. 기존값 검사는 작업 스레드에서 실행하고, 검사 중 저장·수정·파일 전환을 막습니다. 연결 복구 후에는 수정값을 유지한 채 **다시 검사**할 수 있습니다.
-- 같은 PM 위치의 SW를 갱신하고 입력하지 않은 PM·계열·날짜·다른 설비는 유지합니다. 공유 SW 중 한 PM만 바뀌면 그 PM의 연결만 옮깁니다. 사용하지 않는 SW 행은 같은 트랜잭션에서 정리합니다.
-- 여러 행의 공통정보는 확인된 유일한 값을 사용합니다. 여러 시트를 함께 저장할 때는 공통정보와 그 원본을 모두 가진 시트를 현황 출처로 사용합니다. 어느 시트에도 전체 공통정보가 없으면 한 시트에서 함께 검토하도록 안내하고 전체 저장을 보류합니다.
-- 동일값은 기존 현황·SW·PM ID를 재사용합니다. 가져온 PM에는 최신 입력 작업과 SW 원본 위치를 연결하고, 가져오지 않은 PM의 출처는 유지합니다. PM별 SW 원본은 `StoredPm.batch_id`와 `source_reference["version_raw"]`로 확인합니다. 보관한 과거 입력 작업의 셀 값은 바꾸지 않습니다.
-- PM별 모델명으로 전체 설비의 모델 원문을 바꾸지 않습니다. 기존 모델 원문을 보존해야 하는 경우 해당 출처에만 `batch_id`를 지정해 이전 입력 작업을 연결합니다. `EquipmentService.get_snapshot_sources(code, base_date, pm_name=None)`는 위치별 입력 작업을 확인하여 실제 원본 셀 값·위치를 반환합니다. `pm_name`을 지정하면 그 고정 PM의 원본을 조회합니다.
-- 필수값·연결 오류가 남거나 후속 시트 저장이 실패하면 신규 등록·기존값 갱신·입력 작업을 함께 취소합니다. 최종 저장 결과를 확인할 수 없는 연결 중단은 기존 공통 오류로 전달하며 자동 재시도하지 않습니다.
-
-## 릴리즈·Item 등록·수정·조회 (BE-004)
-
-`features/release/ReleaseService`는 기존 `release_version`, `item`, `release_version_item`, `import_batch`를 사용합니다. 새 테이블이나 의존성을 추가하지 않습니다.
-
-| 메서드 | 처리 내용 |
-| --- | --- |
-| `register_release(value, items=())` | 릴리즈와 여러 새 Item을 한 번에 등록. 새 Item은 해당 버전에 `APPLIED`, 모델 범위는 `UNKNOWN`으로 연결 |
-| `register_item(release_id, value)` | 기존 릴리즈에 새 Item 추가 |
-| `update_release(release_id, changes)` | 허용된 릴리즈 관리값 수정 및 실제 수정 항목 기록 |
-| `update_item(item_id, changes)` | Item 번호·내용 수정. 여러 릴리즈가 같은 Item을 공유하면 관리값도 함께 반영 |
-| `save_item_links(release_id, links)` | 기존 Item의 포함 상태와 확인된 모델 범위 등록·수정. 요청에 없는 연결은 유지 |
-| `get_release(release_id)`, `get_item(item_id)` | 현재 관리값과 보관 원본 셀 값·위치를 분리해 조회 |
-| `list_groups()`, `list_families(group_id)`, `list_releases(family_id)` | 릴리즈가 저장된 관리 모델·계열 선택지와 계열별 릴리즈 목록 조회 |
-
-등록 입력은 `ReleaseInput`, `ItemInput`, 연결 입력은 `ItemLinkInput`을 사용합니다. `batch_id=None`으로 직접 등록하면 이번 요청의 자료들이 하나의 새 `MANUAL` 입력 작업을 공유합니다. Excel 자료는 기존 입력 작업 ID와 필드별 `{sheet, cells}` 출처를 전달하며, 참조한 셀이 보관 원본에 있는지 검사합니다. 여러 시트의 출처는 객체 목록으로 보존합니다.
-
-릴리즈는 `version_raw`, `version_suffix`, `released_at`, `version_order`, `item_mapping_status`를 수정할 수 있고, Item은 `item_no`, `content`를 수정할 수 있습니다. 기존 `batch_id`, `source_reference`, 계열·노트·기본키는 이 수정 API에서 변경하지 않습니다. `edited_fields`는 실제로 바뀐 관리 항목을 누적하며 수정 요청에서 직접 덮어쓸 수 없습니다. 원래 값으로 되돌려도 과거에 직접 수정한 사실은 유지합니다.
-
-조회 결과의 `RecordView.current`는 현재 DB 관리값이고, `original_cells`는 필드명·시트·셀 주소·보관 원본값입니다. 원본을 확인할 자료가 없으면 빈 튜플과 `has_original=False`를 반환합니다. 수정 후에도 원본 입력 작업의 셀 값·위치·등록 시각을 유지합니다.
-
-모델 선택지는 계열의 **관리 모델** 기준이며 릴리즈의 실제 적용 모델 전체를 뜻하지 않습니다. `LISTED` 범위는 검토로 확인한 모델 ID만 명시하고 DB 존재 여부·중복·설비군 일치를 검사합니다. 같은 설비군이라는 이유로 모델 적용 범위를 확정하거나 다른 버전으로 Item을 상속하지 않습니다. 일반 Item 삭제·숨김·비활성화는 제공하지 않습니다.
-
-이 절은 `ReleaseService` 자체의 설명입니다. 화면에서의 릴리즈·Item 수정은 '데이터 관리' 메뉴가 `features/management/`의 `ManagementService`로 저장하고, 릴리즈 교체 뒤의 재판정은 `features/release/`의 교체·재판정 서비스(BE-010)가 맡습니다.
-
-```powershell
-uv run --locked python -m pytest tests/test_release_validation.py -q
-uv run --locked --env-file .env python -m pytest tests/test_release_mysql.py -q
-```
-
-클래스·메서드 주석은 [주석 작성 기준](docs/architecture.md#클래스메서드-주석-작성-기준)을 따릅니다.
-
-## 실행
+### 예시 데이터로 실행
 
 ```powershell
 uv run --locked python -m setron
 ```
 
-실행 진입점은 `src/setron/__main__.py`입니다. 시작 창이 뜬 뒤 DB 자료를 워커에서 읽고 메인 창을 엽니다. 사이드바 메뉴는 다음과 같습니다 (`ui/main_window.py`의 `MENUS`).
+<a id="docker로-개발테스트-db-실행"></a>
+<a id="db-연결과-저장-처리-be-001"></a>
 
-| 묶음 | 메뉴 |
-| --- | --- |
-| 조회·분석 | 대시보드, 버전 히트맵, 버전 리플레이, 아이템 매니저, AI분석 |
-| 데이터 | 데이터 가져오기, 데이터 내보내기, 데이터 관리 |
-| 기타 | 보고서, 설정 |
+### MySQL에 연결해 실행
 
-'버전 관리'(`versions`)는 11-10 데이터 관리 개편 전 화면으로, 사이드바에 보이지 않고 등록만 되어 있습니다.
+1. 처음 설정할 때 `.env.example`을 `.env`로 복사하고 개발·테스트 DB 비밀번호를 입력합니다.
+2. Docker Desktop을 시작하고 아래 명령으로 개발 DB를 띄웁니다.
 
-| 시작 상태 | 동작 |
-| --- | --- |
-| `SETRON_DB_NAME` 설정 없음 | 합성 예시 자료로 시작. 가져오기 저장은 메모리, N 그룹도 메모리에만 저장 |
-| DB 접속 성공 | 조회·가져오기 저장·데이터 관리·내보내기·N 그룹 저장이 DB를 사용 |
-| DB 접속 실패 | 합성 예시 자료로 시작하고 안내 문구와 다시 연결 버튼을 표시 |
-| `--demo-excel` | 실행 중인 Excel 대신 합성 통합문서로 가져오기 화면을 확인 |
+   ```powershell
+   docker compose build mysql-dev
+   docker compose up -d --wait mysql-dev
+   ```
 
-이미 설치된 가상환경으로 직접 실행할 때는 터미널에 맞는 명령을 사용합니다.
+3. 새 개발 DB에 업무 테이블을 만든 뒤 아래 명령으로 연결을 확인하고 앱을 실행합니다. 테이블 생성 절차는 포팅 매뉴얼의 2-4절에 있습니다. [포팅 매뉴얼](exec/포팅매뉴얼.md)
 
-```bash
-# Git Bash · 저장소 최상위 폴더에서 실행
-./.venv/Scripts/python.exe -m setron
-```
+   ```powershell
+   uv run --locked --env-file .env python -m setron.infrastructure.database
+   uv run --locked --env-file .env python -m setron
+   ```
+
+### 테스트
 
 ```powershell
-# PowerShell
-.\.venv\Scripts\python.exe -m setron
+uv run --locked python -m pytest tests/test_ui_common.py -q
 ```
 
-`uv run --locked --env-file .env python -m setron`처럼 `SETRON_DB_*` 설정을 넣어 실행하면 조회 화면은 DB 자료를 읽고, 가져오기 저장과 DB 전체 SQL 내보내기도 DB를 사용합니다. Python 없이 실행하는 Windows 실행 파일 만들기와 `setron.env` 설정은 [docs/windows-package.md](docs/windows-package.md)를 봅니다.
+MySQL 통합 테스트에는 전용 테스트 DB를 사용합니다. [전체 테스트 실행 방법](docs/testing.md) · [Windows 실행 파일 빌드](docs/windows-package.md)
 
-### 실행할 때 알아 둘 점
+</details>
 
-| 항목 | 내용 |
-| --- | --- |
-| 접속 설정 | 소스 실행은 `--env-file`로 넘긴 파일, 실행 파일은 `SETRON.exe` 옆의 `setron.env`. 이미 있는 Windows 환경변수가 우선 |
-| 업무 설정 | 목표 N 그룹과 이력, 모델별 적용 근거, 노후도 기준, 등록 라인 등은 DB의 `app_setting` 테이블에 저장 |
-| 개인 화면 설정 | 테마·색상·마지막으로 고른 N 그룹 모델·계열(`Appearance`), 보고서 목록(`Reports`), AI 보고서 목록(`AIReportLibrary`), 데이터 관리 열 너비(`SETRON`)는 Qt `QSettings`로 이 PC에만 저장. Windows에서는 레지스트리 `HKEY_CURRENT_USER\Software\SETRON\<이름>` |
-| 로그 | 로그 파일 설정이 없습니다. 몇몇 경고는 Python `logging`으로만 남기며, 콘솔 없이 실행하는 `SETRON.exe`에서는 보이지 않습니다 |
-| 시작 시 자동 보정 | DB에 연결하면 이전 스키마로 만든 DB에 `item.jira_code`(Item별 Jira 코드)와 `equipment_snapshot.process_name`(공정) 칸이 없을 때 `ALTER TABLE`로 더합니다. 기존 값은 바꾸지 않습니다. 칸을 더하지 못하면 공정은 저장하지 않고 앱은 계속 시작합니다. Jira 값이 서로 맞지 않아 이관을 멈추면 합성 예시로 시작하고 안내합니다 |
+---
 
-### 작업 단위 2·3·4·5·6·7 확인 범위
+<a id="directory-structure"></a>
 
-> 개발 단계 기록입니다. 아래 작업 단위 2~7 절의 "합성 예시", "실제 데이터 연동은 아직 포함하지 않습니다", "목표 선택은 앱 실행 중에만 유지" 같은 문장은 당시 기본 실행 기준입니다. 지금은 DB 설정이 있으면 같은 화면이 DB 자료를 읽습니다. 공통 패널의 목표 기준 버튼은 N 그룹 편집 창(`ui/group_dialog.py`)을 열고, 저장한 N 그룹은 DB에 남습니다.
+## 📁 디렉터리 구조
 
-- 224px 사이드바, 원본 SEMES 로고·메뉴 아이콘·폰트, 공통 헤더·카드·버튼·배지를 제공합니다.
-- 시작 시에는 아직 적용된 조건이 없어 지표를 ‘—’로 표시합니다. **조회 적용**을 누르면 합성 예시 대시보드·히트맵 결과를 함께 갱신합니다.
-- 조회 적용 후 헤더의 **선택 범위 설비 목록**이 활성화됩니다. 나머지 미연결 메뉴와 ‘데이터 내보내기’·‘화면 설정’은 비활성화합니다. 도움말과 조회 패널의 ‘조회 적용’은 사용할 수 있습니다.
-- 창이 좁아지면 헤더 액션을 다음 줄에 배치하고, 창 높이가 낮으면 사이드바도 스크롤합니다.
-- 페이지 등록·이동 연결과 위젯 상태 보존을 제공합니다. 담당자는 `MainWindow.register_page(key, widget)`와 `navigate(key)`로 연결합니다. [공통 UI 구조](docs/architecture.md#공통-ui-작업-단위-2)를 참고합니다.
-
-조회 조건은 다음 순서로 확인합니다.
-
-1. Site·Fab·Line·설비군을 선택합니다. Site 변경 시 Fab·Line, Fab 변경 시 Line 선택을 전체로 초기화합니다.
-2. **조회 적용**을 누르면 적용 조건과 요청 번호가 갱신됩니다. 선택만 바꿔서는 기존 적용 조건이 바뀌지 않습니다.
-3. **전체 조건으로**는 선택 중인 조건만 초기화합니다. 전체 범위를 적용하려면 다시 조회 적용을 누릅니다.
-
-Site·설비군은 VER3 선택지 미리보기입니다. Fab·Line의 실제 매핑은 미등록이므로 전체·미지정만 표시하며 P1·15L 같은 원본 구역을 임의로 변환하지 않습니다. KCTC의 Inline Ox·Inline O2·Cluster Ox·Cluster O2는 서로 다른 선택지입니다. 앱에서는 목표 N을 임시 편집할 수 있으며 개인 기본 선택지 설정은 아직 비활성화 상태입니다.
-
-‘조건 적용됨’은 **조건을 확정했다는 뜻이지 DB 조회가 완료되었다는 뜻이 아닙니다.** 현재 대시보드 결과도 합성 예시이며 실제 회사 현황이 아닙니다. 적용 상태는 앱 실행 중에만 유지됩니다. [조회 조건 계약과 페이지 연결 방법](docs/architecture.md#공통-조회-조건-작업-단위-3)을 참고합니다.
-
-### 대시보드 확인 순서 (작업 단위 4)
-
-1. 조회 적용 후 물리 설비·목표 달성률·안전/결함 후보·업그레이드 필요 지표를 확인합니다.
-2. **현황표 / 구성비 / 막대 / 적용 추이** 탭으로 같은 적용 결과를 확인합니다. 차트의 **수치표 보기**로 원본 숫자를 확인할 수 있습니다.
-3. Site·설비군을 바꿔도 이전 결과는 유지됩니다. 다시 조회 적용을 눌러야 지표·표·그래프를 함께 갱신합니다.
-4. 일반 셀은 해당 범위의 전체 설비, 위험 후보 버튼은 후보 설비만 전달해 설비 목록으로 이동합니다. 막대그래프는 적용률과 툴팁만 표시하며 클릭 이동은 제공하지 않습니다. 전달 범위를 자동으로 넓히지 않습니다.
-5. 차트 범례로 표시할 설비군을 선택할 수 있습니다. 범례는 그래프 표시만 바꾸며 조회 조건과 지표는 바꾸지 않습니다.
-
-물리 설비 수에는 HPA를 포함하고 분석에서는 제외합니다. 적용률은 설비·계열당 1건으로 계산하며 판단 불가는 분모에서 제외하고 따로 표시합니다. 반면 구성비는 판단 불가를 포함한 전체 설비·계열 건수가 분모입니다. 두 비율의 분모가 달라 숫자가 다를 수 있으며 화면에 단위를 명시합니다.
-
-추이는 기준 관측일에 선택한 설비 집합과 목표 N을 고정합니다. 과거 관측이 없는 설비를 이전 값이나 0%로 채우지 않으며, 그날 관측된 설비로 계산한 달성률을 선으로 연결합니다. 달성률을 계산할 수 없는 날짜에서만 선을 끊고 미관측 설비 수는 툴팁과 수치표에 표시합니다. 빈 결과·계산 불가·오류는 서로 구분합니다.
-
-대시보드의 **꺾은선 그래프** 탭에서는 상단 **기준 날짜** 한 칸의 달력에서 시작일과 종료일을 함께 선택합니다. 종료일은 공통 조회 기준일에 반영하고, 시작일은 그래프의 표시 기간을 정합니다. 데이터 간격은 **지정일마다 / 1주 / 1개월 / 3개월**입니다. 지정일마다는 기본 1일이며 버튼을 누르면 별도 입력 창에서 양의 정수를 입력할 수 있습니다. 적용하면 간격을 바꾸고 취소하면 기존 조건을 유지합니다. 시작일부터 해당 간격의 기준일을 만들고 종료일도 포함합니다. 각 기준일 이전 마지막 관측의 집계를 표시하며, 툴팁과 수치표에서 실제 관측일을 확인할 수 있습니다. 간격 변경은 읽어 둔 자료로 그래프와 설비군 칩을 갱신합니다. 다른 탭에서는 일반 날짜 선택으로 돌아오고, 상단 조건 초기화는 전체 기간과 1일 간격으로 되돌립니다.
-
-### 버전 히트맵 확인 순서 (작업 단위 5)
-
-1. **조회 적용 → 버전 히트맵** 메뉴를 선택합니다. 반대 순서로 진입해도 조회 적용 후 결과가 표시됩니다. 대시보드와 같은 적용 조건·기준 관측일·설비 집합·목표를 사용합니다.
-2. **밀집 보기 / 버전 함께 보기**를 전환합니다. 물리 설비 한 대는 타일 하나이며, 버전 함께 보기에서는 선택 범위의 모든 계열·PM 원문과 `N 이상 / N-k / 판단 불가`를 표시합니다. 복수 SW·PM 버전 불일치를 별도 표시하고 타일의 도움말에서 목표 N·판단 불가 사유·Fab/Line/원본 구역을 확인할 수 있습니다.
-3. 채움색은 초록(목표 달성), 노랑(미달), 회색(정보 부족 또는 분석 제외)입니다. 위험 후보는 별도 표시하며, 위험 미확인을 뜻하는 타일 우측 상단의 `?` 장식은 표시하지 않습니다. 상세 패널과 타일 도움말에서는 위험 상태를 확인할 수 있습니다. 목표 달성과 위험 후보는 동시에 성립할 수 있습니다. 회색 HPA는 물리 대수에만 포함합니다.
-4. **위험 후보 n대만 보기**를 누르면 타일 표시만 제한하며 다시 누르면 전체로 복귀합니다. 적용 조건과 오른쪽 요약은 바뀌지 않습니다. 빈 후보/빈 조회/실패를 구분하며 재적용으로 다시 확인할 수 있습니다.
-5. 타일은 클릭 또는 Tab·Space로 선택해 **오른쪽 설비 상세 패널**을 엽니다. 히트맵 화면은 유지되며 닫기·Esc·패널 바깥 클릭으로 닫습니다. 조회 결과·보기 방식·선택·스크롤 위치는 유지됩니다.
-
-현재 히트맵은 합성 예시 63대(분석 60대·HPA 3대)입니다. 실제 회사 현황이 아닙니다. 창이 좁아지면 타일 열 수를 줄이고 요약을 아래에 배치합니다. 실제 데이터 연동은 아직 포함하지 않습니다. [히트맵 연결 계약](docs/architecture.md#버전-히트맵-작업-단위-5)과 [대시보드 연결 계약](docs/architecture.md#대시보드-작업-단위-4)을 참고합니다.
-
-### 설비 목록·상세 확인 순서 (작업 단위 6)
-
-1. 조회 적용 후 **선택 범위 설비 목록**을 누르거나 대시보드의 일반 셀·후보 버튼을 선택합니다. 일반 셀은 해당 범위 전체, 후보 버튼은 전달된 후보만 표시합니다. 헤더 버튼도 전체 DB가 아닌 현재 적용 조건의 목록입니다.
-2. 설비명·위치·모델·버전 원문 검색, 목표 상태 필터, 설비명/Site 정렬, 후보 필터와 **이전/다음**으로 12대씩 확인합니다. 복수 SW/PM이어도 물리 설비당 한 행입니다. ‘범위 전체’는 전달받은 ID 안에서 후보 제한만 해제하며, **적용 범위 전체로**를 명시적으로 눌러야 원래 공통 조회 범위로 돌아갑니다.
-3. 요약은 현재 목록에 전달된 범위 전체 기준입니다. 검색·표시 필터·페이지 이동은 적용 조건이나 요약을 바꾸지 않습니다. Fab·Line과 원본 구역은 별개로 표시합니다. 좁은 창에서는 표 내부를 좌우로 스크롤합니다.
-4. 행을 클릭하거나 선택 후 Enter로 상세를 엽니다. 한 상세 화면을 재사용하며 목표 달성·미달·위험 후보·정보 부족·복수 SW·HPA를 데이터에 따라 표시합니다. 설치 원문·목표 N·N 비교·비교 사유를 PM별로 확인합니다.
-5. **선택 SW 판정**과 **설비 전체 등록 SW 판정**은 다릅니다. 상세 표는 같은 호기·같은 관측일의 전체 SW를 보여주지만 원래 적용 범위의 집계는 바꾸지 않습니다. 특정 SW가 달성해도 다른 SW가 미달이면 설비 전체는 미달일 수 있습니다.
-6. 목록에서 연 전체 상세의 **이전 조회로 돌아가기**는 목록의 필터·정렬·페이지 상태를 유지합니다. 히트맵에서 연 상세는 패널 닫기로 복귀합니다. 조건 초안만 바꾸면 기존 결과를 보존하고, 조회 재적용·선택지 변경·실패 시에는 이전 상세와 선택을 지웁니다.
-
-현재 위험 정보는 설비 단위 판정 결과만 연결되어 있습니다. 규칙·필수 Item·릴리즈 문서·원본 셀은 **미연결**로 표시하며 근거를 만들어내지 않습니다. 모듈 수·필수 SW 목록도 미확정입니다. 관측 이력 버튼은 비활성화되어 있고, 로그인·데이터 수정/저장·DB/Excel 연동은 포함하지 않습니다. [목록·상세 연결 계약](docs/architecture.md#설비-목록상세-작업-단위-6)을 참고합니다.
-
-### VER5 Version Replay
-
-왼쪽 **Version Replay** 메뉴에서 기간·Site·Fab·Line·설비군과 버전 다중 선택 조건으로 관측 자료를 조회합니다. 날짜 칩·재생·일시정지·처음부터, 설비군별 목표 적용 추이, 달성률·진행 막대, 설비군 → Line → 설비 히트맵과 같은 관측일의 읽기 전용 상세 패널을 제공합니다. 실제 저장 관측일만 재생하며 조회 적용 시 고정한 N·판정 기준을 유지합니다.
-
-버전 선택 팝업은 조회 조건(OR)이며 목표 N을 변경하지 않습니다. [Figma 레이어별 구현 위치와 프론트 확인 순서](docs/replay-ver5.md)를 참고합니다.
-
-### 목표 N 편집 확인 순서 (작업 단위 7)
-
-1. 대시보드·히트맵·목록의 공통 패널에서 **목표 기준 편집**을 누릅니다. 처음 조회하기 전에도 편집할 수 있습니다. VER3의 릴리즈 선택·미적용/적용 구분을 모델·계열별 대화상자로 확장했습니다.
-2. 설비군·모델·계열을 고른 뒤 목표 릴리즈를 선택합니다. 실제 공급자에 등록된 모델·계열 조합만 표시하며, 같은 설비군/계열도 모델이 다르면 독립적으로 선택합니다. Site·Fab·Line별 목표를 만들거나 현재 설비군 하나에만 몰래 제한하지 않습니다.
-3. 같은 계열의 `version_order`가 확인되고 중복되지 않는 릴리즈만 새 목표로 선택할 수 있습니다. 순서가 확인된 Hotfix도 허용하며 문자열 크기·접미사로 순서를 추정하지 않습니다. 순서 미확인/중복·릴리즈 ID 중복은 선택 불가로 표시합니다.
-4. 여러 모델·계열을 바꾸고 변경 요약을 확인한 뒤 **선택 완료**를 누릅니다. 이는 **목표 초안 변경**일 뿐 DB 저장이나 조회 적용이 아닙니다. 선택 중 N과 기존 적용 N을 별도로 표시하며 이전 숫자는 유지합니다.
-5. **조회 적용**을 누르면 위치·설비군·목표 N을 함께 확정합니다. 대시보드·추이·히트맵·목록 요약·설비 전체 상세가 같은 적용 N으로 다시 계산됩니다. 위험 판정은 N 변경과 독립적입니다.
-6. **취소 / Esc / 창 닫기**는 대화상자 안의 편집을 버립니다. **선택 원래대로**는 대화상자를 열었을 때의 초안으로 돌아가며 공급자 기본값으로 바꾸지 않습니다. 공통 패널의 **전체 조건으로**는 위치·설비군만 초기화하고 N은 유지합니다.
-
-‘목표 미지정’은 해당 모델·계열을 판단 불가로 두는 명시적 선택입니다. 기존 잘못된 목표도 자동으로 정상 릴리즈에 연결하지 않으며 미확인/확인 필요로 알립니다. 편집 도중 조회 선택지나 릴리즈 자료가 바뀌면 완료를 거부하고 다시 열도록 안내합니다. 빈 선택지에서는 가짜 릴리즈를 만들지 않습니다.
-
-현재 목표 선택은 **앱 실행 중에만 유지**됩니다. 원본 버전·공급자 기본 목표·위험 규칙·DB·파일을 수정하지 않으며 앱을 새로 열면 초기 목표로 시작합니다. 실제 저장·사용자별 정책·기준일 변경은 후속 작업입니다. [목표 N 연결 계약](docs/architecture.md#목표-n-편집-작업-단위-7)을 참고합니다. 설치 확인 도구는 아래 명령으로 계속 별도 실행할 수 있습니다.
-
-### UI 개발 전 설치와 실행 확인
-
-저장소 최상위 폴더에서 `uv sync --locked`를 실행해 Python 3.13 전용 `.venv`와 잠금 파일에 지정된 패키지를 준비합니다. 기존 Python 환경은 그대로 유지합니다.
-
-다음 명령은 DB·Excel·AI 연결 없이 설치 확인 창을 엽니다. Python·PySide6·Qt 버전과 화면 플랫폼을 확인하고 `닫기` 버튼으로 종료합니다.
-
-```powershell
-uv run --locked python -m setron.ui.check_environment
-```
-
-이미 설치된 가상환경의 Python으로 직접 실행할 수도 있습니다.
-
-```powershell
-.\.venv\Scripts\python.exe -m setron.ui.check_environment
-```
-
-설치 확인 창은 업무 화면과 별개입니다. 이후 화면 개발 결과는 위의 앱 실행 명령(`python -m setron`)으로 확인합니다.
-
-### 버전관리 (VER5 / 7)
-
-> 11-10 데이터 관리 개편 뒤 '버전 관리' 메뉴는 사이드바에서 숨겨졌습니다(`HIDDEN_MENUS`). 설비 현황·릴리즈노트 수정과 변경 이력은 '데이터 관리' 메뉴([docs/data-management.md](docs/data-management.md))를 씁니다. 아래는 개발 단계 기록입니다.
-
-왼쪽 **버전 관리**에서 **설비 설치 버전 / 릴리즈 · Item / 설비 정보 관리 / 변경 검토 / 변경·보관 이력** 다섯 탭을 확인합니다. 상단 탭은 아이템 매니저·데이터 가져오기와 같은 밑줄 스타일이며 상세·입력 화면에서도 선택 위치를 유지합니다.
-
-설치 기록 조회·선택 SW 정정, 릴리즈 목록/등록·수정/상세·Item 편집, 설비 정보 작업본, 변경 검토·보관, 원본 근거·선택 작업 Excel, Relative/Actual 비교·경과 기간 설정을 제공합니다. 기존 설치 SW 정정만 연결된 관리 저장 서비스를 사용하며, 신규 등록·설비 정보·보관과 릴리즈·Item의 새 편집 UI는 **현재 앱 세션의 작업본**으로 DB 저장과 구분합니다. 원본·관측일·공통 목표 N·실제 설비 프로그램을 자동 변경하지 않습니다.
-
-[Figma 화면별 대응·정확한 확인 위치와 저장 경계](docs/version-management-ver5.md)를 참고합니다. 아래 B-1은 재사용한 읽기 기반의 초기 개발 기록이며, 현재 앱의 화면 범위는 이 VER5 안내를 우선합니다.
-
-### 버전 목록·상세 확인 순서 (기존 B-1 기반)
-
-**버전 관리** 메뉴에서 읽기 전용 릴리즈 목록을 확인할 수 있습니다. 기존 `ui/` 공통 창·카드·표·버튼·폰트를 재사용합니다. 버전 수정·저장과 목표 N 편집은 서로 다른 기능이며, 이 화면에서는 둘 다 변경하지 않습니다.
-
-1. **모델 / SW 계열**을 선택하고 버전 원문 또는 출처 문서명으로 검색합니다. 모델을 바꾸면 연결된 계열만 표시합니다. 이 선택은 대시보드의 Site·Fab·Line·설비군 조건과 별개입니다.
-2. 확인된 `version_order` 기준 오름차순/내림차순으로 보고 12건씩 이동합니다. 순서 미확인은 마지막에 두고 중복 순서는 선후 미확인으로 표시합니다. 버전 문자열·출시일로 순서를 추정하지 않습니다.
-3. 행 클릭 또는 Enter로 상세를 엽니다. 버전 원문·출시일·확인된 순서·연결 모델·Item 매핑 상태와 포함 Item·모델 범위·출처 문서/리비전/시트/셀/입력 작업을 확인합니다. 누락된 값은 미확인으로 표시합니다.
-4. Item의 릴리즈 포함 상태와 선택 모델 판정(적용/미적용/미확인/대상 외)을 구분합니다. 선택 모델 판정은 실제 설비 배포 현황이 아닙니다. 같은 계열의 Item이라도 해당 버전의 저장 행이 없으면 미확인이고, 최신 버전이라는 이유로 상속하지 않습니다.
-5. **릴리즈 목록으로 돌아가기**는 검색·정렬·페이지·선택 행을 보존합니다. 메뉴를 이동해도 같은 페이지 인스턴스를 사용합니다. **다시 불러오기**는 이전 상세를 지우고 목록을 갱신하며 실패 시 재시도 안내를 표시합니다.
-
-기본 실행은 A의 합성 릴리즈 ID·원문·순서를 재사용하고, B-1 확인용 합성 Item과 문서·셀 위치를 덧붙입니다. 실제 문서나 회사 현황이 아닙니다. 기존 릴리즈에 출시일이 없으므로 예시에서도 출시일을 만들어내지 않습니다. 실제 DB·Excel·원본 파일 열기는 미연결이며 수정·저장은 B-2, 설비별 Item 적용 현황 연결은 B-4 범위입니다.
-
-검증 자료는 `create_window(version_loader=...)`로 메모리의 `VersionCatalog` 공급자를 주입할 수 있습니다. A 공급자만 주입하면 그 공급자의 릴리즈를 읽고 Item/출처는 미연결로 표시하며 합성 정보를 추가하지 않습니다. 실제 DB 공급자·워커 연결은 별도 통합 작업입니다. [B-1 연결 계약](docs/architecture.md#b-1-릴리즈-목록과-상세)과 [검증 범위](docs/testing.md#버전-목록상세-검증-b-1)를 참고합니다.
-
-### 버전 다중 선택 조회 (VER5 / 2-V)
-
-대시보드·버전 히트맵의 공통 조회 패널에서 **조회 버전 · 전체**를 누릅니다. 저장된 관측의 버전 원문을 체크박스로 여러 개 선택하고 **선택 완료 → 조회 적용** 순서로 적용합니다. 전체 선택·선택 해제·선택 개수·버전 미등록 포함을 제공하며, 취소·Esc·창 닫기는 팝업 안의 변경을 버립니다. 빈 선택은 완료할 수 없습니다.
-
-이 기능은 목표 N을 설정하는 **버전(N) 기준 입력**과 별개입니다. 버전 문자열의 대소문자·접미사·앞뒤 공백을 임의로 합치지 않습니다. 선택한 설비군의 SW 중 하나라도 선택 버전과 일치하면 그 물리 설비를 한 번 포함하고, 나머지 PM을 지워 목표 미달·위험 근거를 숨기지 않습니다. 버전 미등록은 SW가 없거나 원문이 비어 있는 관측이며, 릴리즈 대응 실패 원문은 별도 버전 선택지로 유지합니다.
-
-같은 적용 결과를 대시보드 KPI·차트·히트맵·설비 목록/상세·AI 수치와 현재 조회 현황 출력에 전달합니다. 과거 추이는 기준일에 선택된 설비 집합의 원래 관측을 유지하므로 과거 버전이 다르다는 이유로 누락시키지 않습니다. 조건 초기화는 버전 선택도 전체로 되돌리지만 **조회 적용 전까지 기존 결과와 N은 유지**합니다. 조회 선택만 바꾸며 DB·원본 버전·목표 N·위험 규칙은 수정하지 않습니다.
-
-## 테스트
-
-```powershell
-uv run --locked python -m pytest
-```
-
-DB 접속 설정을 불러오지 않으면 실제 MySQL 테스트는 건너뜁니다. Excel 읽기, 예제 AI 응답, 버전·집계·Item 판정과 DB 입력 검증 등의 테스트는 외부 서버 없이 실행합니다. DB 트랜잭션의 기본 동작은 SQLite에서도 확인하며, 이 결과는 실제 MySQL 검증과 구분합니다.
-
-MySQL 통합 테스트는 `SETRON_TEST_DB_*` 설정이 있는 전용 DB에서 실행합니다. 스키마는 테스트 파일 위치를 기준으로 `database/schema_mysql5619.sql`에서 읽으므로 실행 위치에 영향을 받지 않고 별도 스키마 경로 환경변수가 필요하지 않습니다. 테스트가 만든 테이블은 종료 시 삭제합니다. 기존 관리 테이블이 있는 DB에서는 스키마 검증을 거부하므로 테스트 DB에 개발 데이터를 저장하지 않습니다.
-
-```powershell
-docker compose --profile test up -d --wait mysql-test
-uv run --locked --env-file .env python -m pytest -q
-```
-
-`tests/test_database_mysql.py`와 `tests/test_schema_mysql.py`는 실제 MySQL 5.6.19에서 스키마 적용, 저장 성공·전체 취소, JSON·유니코드·버전 원문 보존과 삭제 전 위험 근거 보존을 확인합니다. 문자열 ID 삭제, 잘못된 ID·JSON 입력, TEXT 초과와 삭제 단계 FK 오류도 검증합니다. 같은 위험 규칙을 참조하는 버전의 동시 삭제는 두 작업을 겹쳐 실행해 근거 병합과 각 작업의 저장·취소 결과를 확인합니다.
-
-실제 연결 중단 테스트는 같은 테스트 계정의 별도 연결에서 테스트가 확보한 연결만 종료합니다. 저장 도중에는 앞선 변경·삭제·위험 근거가 모두 취소되고 다음 저장이 가능한지 확인합니다. 최종 commit 단계에서는 COMMIT 전송 직전에 연결을 종료해 결과 불명 오류로 구분하고 자동 재시도하지 않는지 확인합니다. 성공한 commit의 응답만 유실되는 상황을 재현하는 테스트는 아닙니다.
-
-접속 설정을 지정했는데 연결·권한·설정에 문제가 있으면 테스트 실패로 보고합니다. 테스트 종류별 범위, 기능별 체크리스트와 실제 Excel·회사 AI의 확인 방법은 [테스트 전략](docs/testing.md)을 따릅니다.
-
-## 폴더 구조
-
-2026-11-16, develop `f0cfc8d` 기준입니다. 파일이 많은 폴더는 묶어서 적었습니다. 폴더별 책임은 [아키텍처](docs/architecture.md#폴더별-책임)에 있습니다.
+<details>
+<summary><strong>주요 디렉터리 보기</strong></summary>
 
 ```text
-S15P31B106/
+Setron/
 ├── src/setron/
-│   ├── __main__.py            # 실행 진입점 (실행 파일은 옆의 setron.env를 먼저 읽음)
-│   ├── ui/                    # PySide6 화면 (약 110개 모듈). app.py가 화면을 조립
-│   │   └── assets/            # 로고·아이콘·폰트
-│   ├── features/              # 업무 로직 (28개 패키지와 공통 모듈 3개)
-│   │   ├── aggregation/ aging/ ai/ analysis/ chat/ data_admin/ db_export/ db_import/
-│   │   ├── deletion/ equipment/ excel_import/ export/ extraction/ forecast/ history/
-│   │   ├── import_save/ item/ management/ priority/ query/ query_options/ release/
-│   │   ├── report/ risk/ rule_extraction/ storage/ targets/ version/
-│   │   └── reference_data.py, production_area.py, management_format.py
-│   └── infrastructure/        # database.py, ai_client.py, excel_reader.py, env_file.py
-├── database/
-│   ├── schema_mysql5619.sql   # 확정 스키마 (테이블 13개)
-│   ├── seed.sql               # 시연 자료: 설비 300대 · 2026년 5~10월 관측 1,800건 (build_seed.py로 생성)
-│   ├── seed_demo_catalog.sql  # 모델·계열 기준 자료만 (reset_demo_db.py가 사용)
-│   ├── SETRON_DB.sql          # 2026-11-11 setron_master DB 내보내기 (시연 DB 도구용)
-│   ├── init_local_db.py       # 개발용: 스키마(+seed.sql) 적용. 11-16부터 배포 묶음에 넣지 않음
-│   ├── init_demo_dump.py      # 시연 DB 도구의 본체: SETRON_DB.sql 넣기·데이터 비우기
-│   ├── init_docker_demo_dump.py, reset_demo_db.py
-│   └── build_seed.py, build_demo_seed.py, seed_*.py, demo_release_catalog.json  # 시드 생성용
-├── packaging/
-│   ├── build_windows.ps1, setron.spec, run_setron.py   # 배포 폴더 dist/SETRON 빌드
-│   └── build_demo_db.py, build_docker_demo_db.py       # 시연 DB 도구 빌드 (개발팀 내부)
-├── tests/                     # test_*.py 287개, 그중 MySQL 통합 *_mysql.py 39개
-├── docs/                      # 개발 문서 (아래 '문서' 절)
-├── docker/mysql5619/          # 개발·테스트용 MySQL 5.6.19 이미지
-├── ai/                        # 데이터 파트 작업 폴더 (svhm). 앱 실행에는 쓰지 않음
-├── init_local_db.bat          # 예전 배포용 (11-16부터 배포 묶음에 넣지 않음, SETRON_DB_INIT.exe는 시연 메뉴 도구)
-├── prepare_demo_db.bat, prepare_docker_demo_db.bat  # 시연 DB 도구 실행 (개발팀 내부)
-├── compose.yaml, .env.example, setron.env.example
-├── pyproject.toml, uv.lock, .python-version
-└── README.md
+│   ├── __main__.py       # 앱 실행 진입점
+│   ├── ui/               # 대시보드·히트맵 등 데스크톱 화면
+│   ├── features/         # 버전 비교·가져오기·분석·보고서
+│   └── infrastructure/   # Excel·MySQL·AI 연결
+├── database/             # 스키마와 시연 DB 준비 도구
+├── docker/               # 개발·테스트용 MySQL 이미지
+├── packaging/            # Windows 실행 파일 빌드
+├── tests/                # 업무 로직·화면·DB 테스트
+├── ai/                   # 데이터 추출 실험과 검증 자료
+├── docs/                 # 화면 설계·협업 규칙·검증 기록
+├── exec/                 # 포팅 매뉴얼·시연 시나리오·DB 덤프
+├── compose.yaml          # 개발·테스트 DB 서비스
+├── pyproject.toml        # Python 및 패키지 설정
+└── uv.lock               # 의존성 버전 고정
 ```
 
-`build/`, `dist/`, `.env`, `setron.env`는 Git에서 제외합니다. 각 Python 패키지에는 `__init__.py`를 둡니다. Excel 읽기 테스트는 실제 Excel 대신 가짜 통합문서를 사용합니다.
+</details>
 
-### Item 매니저 (B-3)
+---
 
-**아이템 매니저** 메뉴에서 변경 내용·원본 Item 번호로 검색하고 행 선택 또는 Enter로 상세를 엽니다. 같은 번호도 Item ID로 구분하며, 목록은 12건씩 표시합니다. 상세에서 돌아오면 검색어·페이지·선택 행을 유지합니다.
+<a id="project-guide"></a>
 
-상세는 Item 원문·출처, 계열별 포함 릴리즈와 확인된 순서, 모델 적용 범위, 한 관측 기준일의 설비별 적용 현황과 PM별 근거를 표시합니다. 적용·미적용·미확인·대상 외를 구분하며 저장 행이 없는 버전에 이전 Item을 자동 상속하지 않습니다. HPA는 기존 업무 규칙에 따라 제외하고 제외 대수를 표시합니다.
+## 📚 프로젝트 문서와 협업 규칙
 
-DB 설정이 있으면 DB의 릴리즈·Item·설비 현황을 워커에서 읽고(`DatabaseDashboardSource.load_item_data`), 설정이 없을 때만 합성 예시를 씁니다. Item별 Jira 코드(`item.jira_code`)도 표시합니다. 설비 현황은 본문에 표시된 기준일의 전체 관측 범위이며 A의 공통 조회 조건·목표 N과 독립적입니다. 자료가 미연결인 경우 0대 또는 대상 외로 확정하지 않습니다. Item 내용의 편집·저장은 이 화면이 아니라 '데이터 관리' 메뉴에서 합니다. 실제 공급자 연결 계약은 [아키텍처](docs/architecture.md#item-매니저-b-3)를 참고합니다.
+<details>
+<summary><strong>문서와 개발 규칙 보기</strong></summary>
 
-### Item 배포 시각화·근거 연결 (B-4)
+| 문서 | 내용 |
+| --- | --- |
+| [시연 시나리오](exec/시연시나리오.md) | 현황표를 읽고 업데이트 대상을 찾아 보고서를 만드는 7분 시연 |
+| [포팅 매뉴얼](exec/포팅매뉴얼.md) · [외부 서비스](exec/외부서비스.md) | 개발 환경, DB 초기화, AI 연결, Windows 배포 |
+| [시스템 구성](docs/architecture.md) · [테스트 가이드](docs/testing.md) | 모듈 간 관계와 기능별 검증 방법 |
+| [Git 협업 규칙](docs/git-conventions.md) | 브랜치 운영, 커밋 메시지, 리뷰와 병합 |
+| [GitLab 완성본의 개발 README](https://github.com/setron-B106/Setron/blob/817670a79b05d58e25c451cdf86d06c1398f742e/README.md) | DB 설정, 저장 동작, 화면별 구현 내역을 담은 인계 문서 |
 
-Item 상세의 **Site · 설비 히트맵** 보기를 선택하면 Site별 네 상태의 대수와 설비 타일을 확인할 수 있습니다. Site의 상태 셀을 선택하면 같은 범위로 타일과 목록을 좁힙니다. 상태 필터의 **적용**을 선택하면 적용 설비 목록을 볼 수 있습니다. HPA는 집계에서 제외되며, 색상과 상태 문구를 함께 표시합니다.
+팀은 기능별 작업을 `develop`에서 통합하고 릴리스할 때 `master`에 병합했습니다. 커밋 제목은 `feat`, `fix`, `docs`처럼 변경 목적을 먼저 적습니다.
 
-설비 행의 Enter 또는 타일의 클릭/Space로 **기존 설비 상세**를 엽니다. 같은 관측일·설비 ID의 PM별 적용 판정, 대응 릴리즈, 저장 행 유무, Item·릴리즈의 문서/리비전/시트/셀 출처를 표시합니다. 돌아오면 Item 검색·페이지·Site·상태·보기·선택 설비와 화면 스크롤이 유지됩니다. 자료 재조회·Item/범위 변경 후의 오래된 이동 요청은 거부합니다.
-
-이 경로는 A의 공통 조회 범위나 목표 N을 바꾸지 않으며 Item 판정을 N 비교로 대신하지 않습니다. 실제 DB·원본 문서/셀 열기·위험 규칙 근거는 미연결입니다. Item 적용만으로 안전 여부를 추정하지 않습니다.
-
-## 문서
-
-개발 작업은 작업별 브랜치에서 진행한 뒤 `develop`에 MR로 통합합니다. 릴리스할 변경이 준비되면 `develop → master` MR로 반영합니다. 자세한 절차는 Git 협업 규칙을 따릅니다.
-
-- [폴더 아키텍처](docs/architecture.md): 모듈별 책임과 기능 추가 원칙
-- [Windows 실행 파일](docs/windows-package.md): 빌드, 사용자 PC 준비, `setron.env`, DB 준비, 시연 DB 도구(개발팀 내부)
-- [테스트 전략](docs/testing.md): 테스트 종류별 범위, 기능별 체크리스트, 실행·결과 기록 방법
-- [멘토 확정 사항 (코드 반영 위치)](docs/mentor-confirmations.md): 멘토 결정이 코드 어디에 반영됐는지. 결정의 기준 문서는 기획 폴더의 `02_멘토링/멘토링 확정 사항.md`
-- [Git 협업 규칙](docs/git-conventions.md): 브랜치, 커밋, 리뷰 및 병합 규칙
-- 화면별 문서: [데이터 관리](docs/data-management.md), [데이터 가져오기 VER5](docs/import-ver5.md), [아이템 매니저 VER5](docs/item-manager-ver5.md), [버전 리플레이 VER5](docs/replay-ver5.md), [보고서](docs/reports-ver5.md), [설정](docs/settings-ver5.md), [버전관리 VER5](docs/version-management-ver5.md)(사이드바에서 숨김), [히트맵 상세 패널](docs/heatmap-detail-sidebar.md), [관리값 요약 Excel](docs/management-export.md), [AI 분석 계획](docs/ai-analysis-plan-first.md), [공통 드롭다운](docs/dropdown-behavior.md)
-- DB 구조: 확정 스키마는 [database/schema_mysql5619.sql](database/schema_mysql5619.sql)(테이블 13개)입니다. 팀 확정 ERD(2026-11-16 판)와 테이블 13개가 같고, 코드 스키마에는 ERD에 없는 `equipment_snapshot.process_name`(공정) 칸과 FK·UNIQUE 제약이 더 있습니다.
-- 지난 설계: `docs/mermaid-diagram.png`는 스키마 확정 전의 옛 ERD 초안입니다. 지금 DB 구조와 다르므로 참고하지 않습니다.
-
-### B-2 수정 화면 공통 기반
-
-> 개발 단계 기록입니다. 이 화면이 있던 '버전 관리' 메뉴는 지금 사이드바에서 숨겨져 있고, 릴리즈·Item 수정은 '데이터 관리' 메뉴가 `ManagementService`로 저장합니다.
-
-릴리즈 상세의 **릴리즈 수정**에서 공통 편집 대화상자를 열 수 있습니다. 현재는 **편집 항목 확인 대기·저장 미연결** 상태이며 실제 릴리즈 필드를 변경하거나 DB·파일에 저장하지 않습니다. 초안 비교·검증·취소·비동기 저장 성공/실패/결과 미확인 처리는 테스트 전용 항목과 가짜 저장 서비스로 검증합니다. 실제 필드 입력과 BE-004 연결은 별도 작업입니다.
+</details>
