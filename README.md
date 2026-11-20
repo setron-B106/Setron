@@ -1,7 +1,7 @@
 <div align="center">
   <h1><img src="docs/media/presentation/header.png" alt="SETRON · SEMES Tracking Monitoring" width="100%" /></h1>
   <h3>반도체 설비 소프트웨어 버전 관리 도구</h3>
-  <p>설비 현황표와 릴리스 노트를 한곳에 모아, 생산 라인별로 설치 버전을 비교하고 업데이트할 설비를 찾습니다.</p>
+  <p>흩어져 있던 설비 현황표와 릴리스 노트를 한곳에서 관리하고, 생산 라인별 설치 버전을 비교해 업데이트가 필요한 설비를 한눈에 보여 줍니다.</p>
   <p>
     <strong>팀</strong> SSAFY 대전 B106 · 마블룰렛 · SEMES 연계 프로젝트<br />
     <strong>개발 인원</strong> 6명<br />
