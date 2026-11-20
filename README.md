@@ -1,5 +1,5 @@
 <div align="center">
-  <h1><img src="docs/media/presentation/header.png" alt="SETRON" width="100%" /></h1>
+  <h1><img src="docs/media/presentation/header.png" alt="SETRON · SEMES Tracking Monitoring" width="100%" /></h1>
   <h3>반도체 설비 소프트웨어 버전 관리 도구</h3>
   <p>설비 현황표와 릴리스 노트를 한곳에 모아, 생산 라인별로 설치 버전을 비교하고 업데이트할 설비를 찾습니다.</p>
   <p>
@@ -144,7 +144,7 @@
 | 설비 이력 저장·조회 | <img src="docs/media/badges/mysql.svg" alt="MySQL 5.6.19" height="23" /> <img src="docs/media/badges/sqlalchemy.svg" alt="SQLAlchemy" height="23" /> <img src="docs/media/badges/pymysql.svg" alt="PyMySQL" height="23" /> |
 | Excel 자료 가져오기·내보내기 | <img src="docs/media/badges/xlwings.svg" alt="xlwings" height="23" /> <img src="docs/media/badges/pandas.svg" alt="pandas" height="23" /> <img src="docs/media/badges/openpyxl.svg" alt="openpyxl" height="23" /> |
 | Word·PDF 보고서 생성 | <img src="docs/media/badges/python-docx.svg" alt="python-docx" height="23" /> <img src="docs/media/badges/qt-pdf.svg" alt="Qt PDF" height="23" /> |
-| Excel 값 추출·자연어 질문 해석 | <img src="docs/media/badges/openai-python-sdk.svg" alt="OpenAI Python SDK" height="23" /> <img src="docs/media/badges/chat-completions-api.svg" alt="OpenAI 호환 Chat Completions API" height="23" /> |
+| Excel 값 추출·자연어 질문 해석 | <img src="docs/media/badges/chat-completions-api.svg" alt="Chat Completions API" height="23" /> |
 | 개발 환경·테스트·Windows 배포 | <img src="docs/media/badges/uv.svg" alt="uv" height="23" /> <img src="docs/media/badges/docker-compose.svg" alt="Docker Compose" height="23" /> <img src="docs/media/badges/pytest.svg" alt="pytest" height="23" /> <img src="docs/media/badges/pyinstaller.svg" alt="PyInstaller" height="23" /> |
 
 ---
@@ -155,17 +155,17 @@
 
 ### 서비스 구성
 
-[![Excel 원본 검토부터 설비 버전 분석과 결과 출력까지 이어지는 서비스 구성도](docs/media/design/service-architecture.png)](docs/media/design/service-architecture.png)
+[![Excel에서 설비 현황표와 릴리스 노트를 가져와 점검하고 결과를 공유하는 업무 흐름](docs/media/design/service-architecture.png)](docs/media/design/service-architecture.png)
 
-담당자가 Excel에서 읽은 값을 검토하고 저장하면, SETRON은 설비별 설치 기록을 릴리스 노트와 연결합니다. 대시보드와 히트맵은 선택한 기준일의 현황을 보여 주고, 리플레이는 기간별 변화를 보여 줍니다. 설비 현황은 Excel로 공유하고 전체 관리 데이터는 SQL로 백업합니다. 조회한 표와 그래프는 보고서에 담을 수 있습니다.
-
-<a id="db-연동-개발-기준"></a>
+담당자는 설비 현황표와 릴리스 노트를 가져와 원본과 대조한 뒤 저장합니다. 대시보드에서 점검할 라인을 좁히고, 버전 히트맵에서 설비를 고르면 설치 이력을 볼 수 있습니다. 특정 수정 사항이 적용됐는지는 아이템 매니저에서, 지난 점검 이후 달라진 점은 버전 리플레이에서 확인합니다. 공유할 표와 그래프는 보고서에 담습니다.
 
 ### 인프라 구성
 
-[![Windows 현장 환경과 Docker 기반 개발·테스트 DB, 선택적으로 연결하는 AI API 구성도](docs/media/design/infrastructure.png)](docs/media/design/infrastructure.png)
+[![현장 Windows PC의 Excel·SETRON·MySQL과 사내 또는 상용 AI 모델의 연결 관계](docs/media/design/infrastructure.png)](docs/media/design/infrastructure.png)
 
-현장에서는 Windows 앱이 PC에 설치된 MySQL 5.6.19에 연결됩니다. 개발할 때도 앱과 Excel은 Windows에서 실행하고, Docker Compose로 개발용 DB와 테스트용 DB를 분리합니다. 두 환경은 같은 스키마를 사용합니다. AI 추출이나 자연어 분석에 외부 모델을 쓸 때는 앱에 OpenAI 호환 API를 설정합니다. [모듈별 역할과 연결 방식](docs/architecture.md)
+현장 PC에서 `SETRON.exe`는 열려 있는 Excel 시트를 읽고, 담당자가 확인한 값을 같은 PC의 MySQL 5.6.19에 저장합니다. 대시보드와 보고서는 이렇게 쌓인 기록을 사용합니다.
+
+기업 요구사항에 맞춘 구성에서는 Excel 값 추출과 자연어 질문 해석에 **사내 AI 모델**을 사용합니다. 같은 Chat Completions API 형식을 지원하는 **상용 AI 모델**도 연결할 수 있습니다. 배포 시 `setron.env`에 사용할 서버 주소, 모델명, 인증 키를 지정합니다. [AI 연결 설정](exec/외부서비스.md)
 
 ---
 
@@ -192,17 +192,23 @@
 
 ## 🔬 핵심 기술
 
-### 원본 셀을 대조하는 Excel 가져오기
+### Excel 원본 셀과 추출값 대조
 
-앱은 열린 시트에서 값과 원래 셀 주소, 병합 범위를 함께 읽습니다. 정해진 양식은 규칙으로 해석하고 다른 양식에는 AI 추출을 사용할 수 있습니다. 검토 표에서 값을 고르면 어느 셀에서 왔는지 확인할 수 있어, 잘못 읽힌 버전을 저장 전에 바로잡을 수 있습니다.
+[![Excel 시트의 B4 셀과 검토 표의 설치 버전을 나란히 대조하는 예시](docs/media/design/core-excel-review.png)](docs/media/design/core-excel-review.png)
+
+검토 표에는 추출한 값과 원본 셀의 주소가 함께 남습니다. 예를 들어 설치 버전 `1.3.2`는 `설비현황!B4`에서 읽은 값입니다. 정해진 양식은 규칙으로 읽고, 다른 양식에는 AI 추출을 쓸 수 있습니다. 두 경우 모두 담당자가 원본과 대조한 뒤 저장합니다.
 
 ### 목표 달성률과 위험 후보 판정
 
-목표 버전 **N**은 소프트웨어 계열별로 정합니다. 대시보드는 한 설비에 설치된 각 계열을 한 건으로 세고, 판정 가능한 기록 중 목표 버전 이상인 비율을 계산합니다. 버전 정보가 부족한 기록은 ‘확인 필요’로 표시합니다. **위험 후보**는 등록한 결함 버전을 사용하거나 필수 수정 사항을 적용하지 않은 설비처럼, 설정한 위험 기준에 해당하는 설비를 대수로 집계합니다. [대시보드 지표 정의](docs/dashboard.md)
+[![설비·소프트웨어 계열별 설치 기록으로 목표 달성률을 계산하고 위험 후보를 따로 확인하는 예시](docs/media/design/core-target-risk.png)](docs/media/design/core-target-risk.png)
 
-### 자연어 질문을 검증 가능한 조회로 변환
+설비마다 **소프트웨어 계열별**로 설치 버전과 그 계열의 목표 버전(N)을 비교합니다. 그림처럼 네 건 중 한 건의 버전을 확인할 수 없고, 나머지 세 건 중 두 건이 목표 이상이면 달성률은 **66.7%**입니다. 위험 후보는 설비 대수로 셉니다. 목표 버전에 도달한 설비라도 등록된 결함 버전을 사용하거나 필수 수정 사항을 적용하지 않았다면 위험 후보에 포함될 수 있습니다. [대시보드 지표 정의](docs/dashboard.md)
 
-“목표에 미달한 설비를 보여 줘”라고 물으면 AI가 질문에서 필요한 조회 조건을 해석합니다. 앱은 조건을 검증하고 저장된 기록에서 설비 목록과 집계 값을 구합니다. 답변의 **판단 근거**를 열면 어떤 조건으로 조회했는지 확인할 수 있습니다. [질문 해석과 집계 방식](docs/ai-analysis-plan-first.md)
+### 자연어 질문으로 설비 조회
+
+[![질문을 조회 조건으로 바꾸고 저장된 설비 기록에서 결과와 판단 근거를 찾는 예시](docs/media/design/core-query-analysis.png)](docs/media/design/core-query-analysis.png)
+
+“평택 P3에서 목표 미달인 설비를 보여 줘”라고 물으면 AI가 사업장, 라인, 목표 미달이라는 조건을 읽어 냅니다. 앱은 이 조건을 검증하고 저장된 기록에서 해당 설비를 찾습니다. 답변의 **판단 근거**를 열면 어떤 조건으로 목록을 만들었는지 확인할 수 있습니다. [질문 해석과 집계 방식](docs/ai-analysis-plan-first.md)
 
 ---
 
@@ -210,11 +216,11 @@
 
 ## 📋 API 명세
 
-외부 HTTP API는 Excel 추출과 자연어 분석에 사용합니다. Excel을 읽고 설비 기록을 저장하는 작업은 Windows 앱에서 직접 처리합니다.
+Excel 값 추출과 질문 해석에는 설정한 모델 서버의 HTTP API를 사용합니다. Excel 시트 읽기와 설비 기록 저장은 Windows 앱이 직접 처리합니다.
 
 | 기능 | 연결 방식 | 구현 · 설정 |
 | --- | --- | --- |
-| AI 추출과 질문 해석 | OpenAI 호환 `POST {SETRON_AI_BASE_URL}/chat/completions` | [API 설정](exec/외부서비스.md) · [AI 클라이언트](src/setron/infrastructure/ai_client.py) |
+| AI 추출과 질문 해석 | Chat Completions API · `POST {SETRON_AI_BASE_URL}/chat/completions` | [API 설정](exec/외부서비스.md) · [AI 클라이언트](src/setron/infrastructure/ai_client.py) |
 | Excel 시트 읽기 | xlwings로 실행 중인 Excel에 연결해 통합문서, 시트, 셀 값을 읽습니다. | [Excel 읽기 모듈](src/setron/infrastructure/excel_reader.py) |
 | 설비 기록 저장과 조회 | SQLAlchemy와 PyMySQL로 MySQL에 연결합니다. | [DB 연결 모듈](src/setron/infrastructure/database.py) · [DB 스키마](database/schema_mysql5619.sql) |
 
@@ -242,6 +248,7 @@ uv run --locked python -m setron
 
 실제 현황표를 가져오려면 Windows용 데스크톱 Excel에서 통합문서를 먼저 엽니다.
 
+<a id="db-연동-개발-기준"></a>
 <a id="docker로-개발테스트-db-실행"></a>
 <a id="db-연결과-저장-처리-be-001"></a>
 
