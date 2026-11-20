@@ -1,6 +1,6 @@
 [project]
 name = "setron"
-version = "0.1.0"
+version = "1.0.0"
 description = "설비 소프트웨어 버전 및 Release Item 관리 프로그램"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
