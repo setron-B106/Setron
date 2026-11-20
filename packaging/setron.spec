@@ -44,4 +44,10 @@ exe = EXE(
     icon=str(spec_dir.parent / "src" / "setron" / "ui" / "assets" / "setron-window-icon.ico"),
 )
 # 빈 DB 스키마 설치 도구는 build_schema_db.py에서 별도 생성한다.
-coll = COLLECT(exe, analysis.binaries, analysis.datas, name="SETRON")
+# PyInstaller also collects distribution metadata when it detects version("setron").
+# Only METADATA is needed at runtime; editable install records contain local paths.
+public_data = [
+    entry for entry in analysis.datas
+    if Path(entry[0]).parts[0] != metadata_target or Path(entry[0]).name == "METADATA"
+]
+coll = COLLECT(exe, analysis.binaries, public_data, name="SETRON")

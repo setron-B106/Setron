@@ -283,9 +283,14 @@ def test_spec_builds_only_gui_and_never_creates_obsolete_initializer(monkeypatch
                             copy_metadata=lambda *_: [("metadata", "setron.dist-info")])
     monkeypatch.setitem(sys.modules, "PyInstaller.utils.hooks", hooks)
 
+    metadata = ("setron.dist-info/METADATA", "package/METADATA", "DATA")
+    local_paths = ("setron.dist-info/direct_url.json", "package/direct_url.json", "DATA")
+    asset = ("icons/icon.svg", "source/icon.svg", "DATA")
+
     def analysis(scripts, **kwargs):
         calls.append(("analysis", scripts, kwargs))
-        return SimpleNamespace(scripts=[("entry", scripts[0], "PYSOURCE")], pure=[], binaries=[], datas=[])
+        return SimpleNamespace(scripts=[("entry", scripts[0], "PYSOURCE")], pure=[], binaries=[],
+                               datas=[metadata, local_paths, asset])
 
     def exe(*args, **kwargs):
         calls.append(("exe", args, kwargs))
@@ -301,6 +306,8 @@ def test_spec_builds_only_gui_and_never_creates_obsolete_initializer(monkeypatch
     analyses = [value for kind, value, _ in calls if kind == "analysis"]
     assert len(analyses) == 1 and len(analyses[0]) == 1
     assert Path(analyses[0][0]).name == "run_setron.py"
+    collections = [args[2] for kind, args, _ in calls if kind == "collect"]
+    assert collections == [[metadata, asset]]
     executables = [kwargs for kind, _, kwargs in calls if kind == "exe"]
     resource = executables[0].pop("version")
     strings = {field.name: field.val for field in resource.kids[0].kids[0].kids}
