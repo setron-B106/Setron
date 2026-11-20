@@ -20,7 +20,7 @@
 ## 📑 목차
 
 - [서비스 소개](#service-introduction)
-- [팀원 소개 및 역할](#team)
+- [팀원 소개](#team)
 - [주요 기능](#features)
 - [기술 스택](#technology-stack)
 - [시스템 아키텍처](#system-architecture)
@@ -49,19 +49,19 @@
 
 <a id="team"></a>
 
-## 👥 팀원 소개 및 역할
+## 👥 팀원 소개
 
 <div align="center">
 <table align="center">
   <tr>
-    <td align="center" width="185"><img src="docs/media/team/hohojinjin.jpg" height="128" alt="박호진 프로필 사진" /><br /><strong>박호진</strong><br />팀장 · AI 및 데이터<br /><a href="https://github.com/hohojinjin"><code>hohojinjin</code></a></td>
-    <td align="center" width="185"><img src="docs/media/team/BooGyya.jpeg" height="128" alt="김보경 프로필 사진" /><br /><strong>김보경</strong><br />프론트엔드<br /><a href="https://github.com/BooGyya"><code>BooGyya</code></a></td>
-    <td align="center" width="185"><img src="docs/media/team/1lights1.jpg" height="128" alt="임세희 프로필 사진" /><br /><strong>임세희</strong><br />프론트엔드<br /><a href="https://github.com/1lights1"><code>1lights1</code></a></td>
+    <td align="center" width="185"><img src="docs/media/team/hohojinjin.jpg" height="128" alt="박호진 프로필 사진" /><br /><strong>박호진</strong><br />팀장 · AI 및 데이터<br /><a href="https://github.com/hohojinjin"><img src="docs/media/team/github-mark.svg" width="18" height="18" alt="GitHub" />&nbsp;hohojinjin</a></td>
+    <td align="center" width="185"><img src="docs/media/team/BooGyya.jpeg" height="128" alt="김보경 프로필 사진" /><br /><strong>김보경</strong><br />프론트엔드<br /><a href="https://github.com/BooGyya"><img src="docs/media/team/github-mark.svg" width="18" height="18" alt="GitHub" />&nbsp;BooGyya</a></td>
+    <td align="center" width="185"><img src="docs/media/team/1lights1.jpg" height="128" alt="임세희 프로필 사진" /><br /><strong>임세희</strong><br />프론트엔드<br /><a href="https://github.com/1lights1"><img src="docs/media/team/github-mark.svg" width="18" height="18" alt="GitHub" />&nbsp;1lights1</a></td>
   </tr>
   <tr>
-    <td align="center" width="185"><img src="docs/media/team/alswjd131313.png" height="128" alt="황민정 프로필 사진" /><br /><strong>황민정</strong><br />프론트엔드<br /><a href="https://github.com/alswjd131313"><code>alswjd131313</code></a></td>
-    <td align="center" width="185"><img src="docs/media/team/Kim-jin-gwang.jpg" height="128" alt="김진광 프로필 사진" /><br /><strong>김진광</strong><br />백엔드<br /><a href="https://github.com/Kim-jin-gwang"><code>Kim-jin-gwang</code></a></td>
-    <td align="center" width="185"><img src="docs/media/team/2hnK.jpg" height="128" alt="김지훈 프로필 사진" /><br /><strong>김지훈</strong><br />백엔드<br /><a href="https://github.com/2hnK"><code>2hnK</code></a></td>
+    <td align="center" width="185"><img src="docs/media/team/alswjd131313.png" height="128" alt="황민정 프로필 사진" /><br /><strong>황민정</strong><br />프론트엔드<br /><a href="https://github.com/alswjd131313"><img src="docs/media/team/github-mark.svg" width="18" height="18" alt="GitHub" />&nbsp;alswjd131313</a></td>
+    <td align="center" width="185"><img src="docs/media/team/Kim-jin-gwang.jpg" height="128" alt="김진광 프로필 사진" /><br /><strong>김진광</strong><br />백엔드<br /><a href="https://github.com/Kim-jin-gwang"><img src="docs/media/team/github-mark.svg" width="18" height="18" alt="GitHub" />&nbsp;Kim-jin-gwang</a></td>
+    <td align="center" width="185"><img src="docs/media/team/2hnK.jpg" height="128" alt="김지훈 프로필 사진" /><br /><strong>김지훈</strong><br />백엔드<br /><a href="https://github.com/2hnK"><img src="docs/media/team/github-mark.svg" width="18" height="18" alt="GitHub" />&nbsp;2hnK</a></td>
   </tr>
 </table>
 </div>
