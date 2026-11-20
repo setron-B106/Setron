@@ -1,7 +1,8 @@
 <div align="center">
   <h1><img src="docs/media/presentation/header.png" alt="SETRON · SEMES Tracking Monitoring" width="100%" /></h1>
   <h3>반도체 설비 소프트웨어 버전 관리 도구</h3>
-  <p>흩어져 있던 설비 현황표와 릴리스 노트를 한곳에서 관리하고, 생산 라인별 설치 버전을 비교해 업데이트가 필요한 설비를 한눈에 보여 줍니다.</p>
+  <p>흩어져 있던 설비 현황표와 릴리스 노트를 한곳에서 관리하고,<br />
+    생산 라인별 설치 버전을 비교해 업데이트가 필요한 설비를 한눈에 보여 줍니다.</p>
   <p>
     <strong>팀</strong> SSAFY 대전 B106 · 마블룰렛 · SEMES 연계 프로젝트<br />
     <strong>개발 인원</strong> 6명<br />
@@ -82,6 +83,10 @@
       <td width="44%" valign="middle"><strong>Excel 현황표 가져오기</strong><br /><br />열려 있는 Excel 통합문서에서 시트를 고른 뒤 추출한 값을 원본 셀과 대조합니다. 시연에서는 평택 설비 24대에 기준일과 사업장을 한 번에 입력해 저장합니다.</td>
     </tr>
     <tr>
+      <td width="56%"><a href="docs/media/screens/import-find-replace.png"><img src="docs/media/screens/import-find-replace.png" alt="설비 호기 열에서 ESPG를 ESPH로 찾아 바꾸는 일괄 변경 창" width="100%" /></a></td>
+      <td width="44%" valign="middle"><strong>추출한 값 찾아 바꾸기</strong><br /><br />설비 호기처럼 같은 표기가 반복된 열은 한 번에 고칠 수 있습니다. 그림은 ESPG를 ESPH로 바꾸기 전의 설정 화면입니다. 원본 셀 값은 보존하고, 검토에서 제외한 행은 건너뜁니다.</td>
+    </tr>
+    <tr>
       <td width="56%"><a href="docs/media/screens/dashboard-before-import.png"><img src="docs/media/screens/dashboard-before-import.png" alt="평택 현황표를 가져오기 전 화성 대시보드" width="100%" /></a></td>
       <td width="44%" valign="middle"><strong>가져오기 전 · 화성 100대</strong><br /><br />시연 기준일은 2026년 11월 1일입니다. 화성 설비 100대를 조회했을 때 목표 달성률은 72.0%, 위험 후보는 8대입니다.</td>
     </tr>
@@ -91,7 +96,7 @@
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/02-target-version.gif"><img src="docs/media/demos/02-target-version.gif" alt="소프트웨어 계열을 고르고 목표 버전 설정을 확인하는 과정" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>목표 버전 설정</strong><br /><br />소프트웨어 계열을 고르고 목표 단계 N에 해당하는 버전을 지정합니다. 대시보드와 히트맵에 이 기준이 적용됩니다.</td>
+      <td width="44%" valign="middle"><strong>목표 버전 설정</strong><br /><br />모델과 소프트웨어 계열별로 목표 버전(N)을 정하면 대시보드와 히트맵에 같은 기준이 적용됩니다. 저장 이력에서 이전에 어떤 버전을 기준으로 삼았는지도 확인할 수 있습니다.</td>
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/01-dashboard.gif"><img src="docs/media/demos/01-dashboard.gif" alt="대시보드에서 히트맵과 원형·막대·꺾은선 그래프를 차례로 보는 과정" width="100%" /></a></td>
@@ -103,7 +108,11 @@
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/05-item-manager.gif"><img src="docs/media/demos/05-item-manager.gif" alt="아이템 매니저에서 변경 항목의 설비별 적용 현황을 여는 과정" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>변경 항목별 적용 현황</strong><br /><br />기능명이나 Jira 코드로 변경 항목을 찾고, 어느 설비에 반영됐는지 확인합니다. 필수 수정 사항이나 결함 버전은 위험 기준으로 등록할 수 있습니다.</td>
+      <td width="44%" valign="middle"><strong>변경 항목별 적용 현황</strong><br /><br />기능명이나 Jira 코드로 변경 항목을 검색합니다. 항목을 펼치면 어느 설비에 반영됐고 어느 설비에 아직 적용되지 않았는지 알 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="56%"><a href="docs/media/screens/item-risk-preview.png"><img src="docs/media/screens/item-risk-preview.png" alt="아이템 매니저에서 모델과 위험 판정 버전을 지정하고 적용 대상 건수를 확인하는 창" width="100%" /></a></td>
+      <td width="44%" valign="middle"><strong>위험 기준 등록 전 영향 확인</strong><br /><br />등록할 기준 버전과 적용 범위를 정하면 영향받는 설비가 몇 대인지 먼저 확인할 수 있습니다. 시연 화면의 기준은 M-C4 모델의 v4.60.1.1 미만이며, 화면의 적용 대상은 0건입니다.</td>
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/04-version-replay.gif"><img src="docs/media/demos/04-version-replay.gif" alt="여섯 관측일의 달성률과 히트맵을 재생하는 과정" width="100%" /></a></td>
@@ -111,23 +120,31 @@
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/06-ai-analysis.gif"><img src="docs/media/demos/06-ai-analysis.gif" alt="AI 분석에서 업데이트 우선순위를 묻고 결과 표를 확인하는 과정" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>AI로 업데이트 우선순위 조회</strong><br /><br />업데이트가 시급한 설비를 묻고, 답변에 쓰인 조건과 설비 목록을 확인합니다. 이 녹화는 예제 응답을 사용했습니다.</td>
+      <td width="44%" valign="middle"><strong>AI로 업데이트 우선순위 조회</strong><br /><br />업데이트가 시급한 설비와 추천 이유를 표로 봅니다. 시연의 예제 응답은 우선순위 상위 두 대를 목표 버전으로 올릴 경우 달성률이 71.8%에서 73.4%로 바뀐다고 보여 줍니다.</td>
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/10-reports.gif"><img src="docs/media/demos/10-reports.gif" alt="보고서에 포함할 항목과 저장한 보고서 목록을 확인하는 과정" width="100%" /></a></td>
       <td width="44%" valign="middle"><strong>보고서 만들기</strong><br /><br />조회 기간을 정하고 달성률 추이, 히트맵, 위험 판정 근거 중 필요한 항목을 고릅니다. 완성한 보고서를 미리 보고 Word나 PDF로 저장합니다.</td>
     </tr>
     <tr>
+      <td width="56%"><a href="docs/media/screens/report-export-formats.png"><img src="docs/media/screens/report-export-formats.png" alt="Word, PDF, 히트맵 Excel 중 하나를 고르는 보고서 형식 선택 창" width="100%" /></a></td>
+      <td width="44%" valign="middle"><strong>편집 가능한 히트맵 Excel</strong><br /><br />보고서에서 필요한 히트맵을 고르고 Excel 형식으로 저장하면 항목마다 시트가 하나씩 생깁니다. Excel에서 셀 값과 색을 직접 편집할 수 있습니다.</td>
+    </tr>
+    <tr>
       <td width="56%"><a href="docs/media/demos/09-data-management.gif"><img src="docs/media/demos/09-data-management.gif" alt="현황표에서 설비·위치·릴리스 노트·변경 이력으로 이동하는 과정" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>설비 기록 관리</strong><br /><br />현황표에서 설비와 위치, 릴리스 노트와 변경 이력을 조회합니다. 기록을 정정할 때는 설비와 관측일을 고르고 기존 값과 수정할 값을 비교합니다.</td>
+      <td width="44%" valign="middle"><strong>설비 기록 관리</strong><br /><br />위치 탭에서 사업장과 라인을 선택해 소속 설비를 확인합니다. 가져온 Excel 자료는 삭제 전 영향을 검토할 수 있고, 변경 이력에서는 기존 값과 수정한 값을 비교할 수 있습니다.</td>
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/08-export.gif"><img src="docs/media/demos/08-export.gif" alt="데이터 내보내기 화면에서 Excel과 SQL 탭을 전환하는 과정" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>Excel 내보내기와 SQL 백업</strong><br /><br />조회 결과를 공유할 때는 Excel로 내보냅니다. 전체 관리 데이터를 보관하거나 다른 PC로 옮길 때는 SQL 백업을 만듭니다.</td>
+      <td width="44%" valign="middle"><strong>Excel 내보내기와 SQL 백업</strong><br /><br />조회 결과는 Excel로 내보내고 전체 데이터는 SQL로 백업합니다. 다른 PC에서 백업을 가져올 때는 <a href="docs/media/screens/sql-import-options.png">자동 병합·충돌 검토</a> 방식을 선택할 수 있습니다.</td>
     </tr>
     <tr>
       <td width="56%"><a href="docs/media/demos/11-settings.gif"><img src="docs/media/demos/11-settings.gif" alt="설정 화면에서 화면 모드와 상태별 색상 옵션을 확인하는 과정" width="100%" /></a></td>
-      <td width="44%" valign="middle"><strong>화면 표시 설정</strong><br /><br />화면 모드와 상태별 색상을 바꿀 수 있습니다. 대시보드에서 목표 달성과 미달 상태를 쉽게 구분할 수 있도록 색상을 고릅니다.</td>
+      <td width="44%" valign="middle"><strong>글자 크기와 색각 보정</strong><br /><br />글자 크기와 포인트 색을 고르고 대시보드와 히트맵에 색각 보정 팔레트를 적용할 수 있습니다. 목표 달성·미달을 나타내는 색과 위험 후보의 테두리색도 직접 지정할 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="56%"><a href="docs/media/demos/12-dark-mode.gif"><img src="docs/media/demos/12-dark-mode.gif" alt="밝은 화면에서 어둡게를 선택하고 저장한 뒤 다크 모드가 적용된 모습" width="100%" /></a></td>
+      <td width="44%" valign="middle"><strong>다크 모드 전환</strong><br /><br />표시 모드에서 ‘어둡게’를 선택하고 저장하면 앱 전체에 다크 모드가 적용됩니다. ‘시스템’을 선택하면 Windows 테마를 따릅니다. 이 장면은 예제 데이터로 추가 촬영했습니다.</td>
     </tr>
   </tbody>
 </table>
@@ -186,13 +203,13 @@
 
 ## 🔬 핵심 기술
 
-### Excel 원본 셀과 추출값 대조
+### 1. Excel 원본 셀과 추출값 대조
 
 [![Excel 시트의 B4 셀과 검토 표의 설치 버전을 나란히 대조하는 예시](docs/media/design/core-excel-review.png)](docs/media/design/core-excel-review.png)
 
 예시에서 설비 `EQ-01`의 설치 버전 `1.3.2`는 `설비현황` 시트의 `B4` 셀에서 읽은 값입니다. 검토 표에는 값과 원본 위치가 함께 남아, 잘못 읽힌 값이 있으면 담당자가 해당 셀과 대조해 저장 전에 바로잡을 수 있습니다. 정해진 양식은 규칙으로 읽고, 다른 양식에는 AI 추출을 사용할 수 있습니다.
 
-### 목표 달성률과 위험 후보 판정
+### 2. 목표 달성률과 위험 후보 판정
 
 [![설비·소프트웨어 계열별 설치 기록으로 목표 달성률을 계산하고 위험 후보를 따로 확인하는 예시](docs/media/design/core-target-risk.png)](docs/media/design/core-target-risk.png)
 
@@ -200,7 +217,7 @@
 
 위험 후보는 등록한 위험 기준에 따라 설비 대수로 집계합니다. 예를 들어 `EQ-01`은 목표 버전 1.2를 넘겼지만, 설치한 버전 1.3이 A 계열의 결함 버전으로 등록돼 있어 **위험 후보**에 포함됩니다. [대시보드 지표 정의](docs/dashboard.md)
 
-### 자연어 질문으로 설비 조회
+### 3. 자연어 질문으로 설비 조회
 
 [![질문을 조회 조건으로 바꾸고 저장된 설비 기록에서 결과와 판단 근거를 찾는 예시](docs/media/design/core-query-analysis.png)](docs/media/design/core-query-analysis.png)
 
@@ -228,7 +245,14 @@ Excel 값 추출과 질문 해석에는 설정한 모델 서버의 HTTP API를 �
 
 ## 🚀 개발자 가이드
 
-**배포본으로 바로 실행하려면** Windows 10 이상 64비트 PC에서 ZIP의 압축을 모두 풀고 `SETRON.exe`를 엽니다. 예시 데이터로 대시보드와 히트맵을 둘러볼 수 있습니다. 실제 설비 기록을 저장하려면 실행 안내에 따라 로컬 MySQL을 연결합니다. [Windows 배포본](https://github.com/setron-B106/Setron/releases/download/ver1.0.0/SETRON-1.0.0-windows-x64.zip) · [Windows 실행 안내](docs/windows-package.md)
+<details>
+<summary><strong>Windows 배포본 실행하기</strong></summary>
+
+1. Windows 10 이상 64비트 PC에서 [배포 ZIP](https://github.com/setron-B106/Setron/releases/download/ver1.0.0/SETRON-1.0.0-windows-x64.zip)을 내려받아 압축을 모두 풉니다.
+2. `SETRON.exe`를 열면 예시 데이터로 대시보드와 히트맵을 둘러볼 수 있습니다.
+3. 실제 설비 기록을 저장하려면 [Windows 실행 안내](docs/windows-package.md)에 따라 로컬 MySQL을 연결합니다.
+
+</details>
 
 <details>
 <summary><strong>소스에서 실행하고 테스트하기</strong></summary>
