@@ -1,5 +1,5 @@
 <div align="center">
-  <h1>SETRON</h1>
+  <h1><img src="docs/media/presentation/header.png" alt="SETRON" width="100%" /></h1>
   <h3>반도체 설비 소프트웨어 버전 관리 도구</h3>
   <p>설비 현황표와 릴리스 노트를 한곳에 모아, 생산라인별 소프트웨어 버전과 업데이트가 필요한 설비를 보여 줍니다.</p>
   <p>
@@ -11,10 +11,8 @@
   <p>
     <a href="https://github.com/setron-B106/Setron/releases/tag/ver1.0.0"><strong>Windows 배포본</strong></a> ·
     <a href="https://github.com/setron-B106/Setron/releases/download/ver1.0.0/SETRON-1.0.0-presentation.pdf">발표 자료 (PDF)</a> ·
-    <a href="https://github.com/setron-B106/Setron/releases/download/ver1.0.0/SETRON-1.0.0-presentation.mp4">서비스 소개 영상 (1분 37초)</a> ·
-    <a href="#features">기능별 시연</a>
+    <a href="https://github.com/setron-B106/Setron/releases/download/ver1.0.0/SETRON-1.0.0-presentation.mp4">서비스 소개 영상</a>
   </p>
-  <a href="https://github.com/setron-B106/Setron/releases/download/ver1.0.0/SETRON-1.0.0-presentation.mp4"><img src="docs/media/presentation/cover.png" width="800" alt="반도체 설비 소프트웨어 관리 도구 SETRON · 서비스 소개 영상 열기" /></a>
 </div>
 
 ---
@@ -57,14 +55,14 @@
 
 <table>
   <tr>
-    <td align="center" width="33%">{공란}<br /><strong>박호진</strong><br />팀장 · AI 및 데이터<br /><a href="https://github.com/hohojinjin"><code>hohojinjin</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>김보경</strong><br />프론트엔드<br /><a href="https://github.com/BooGyya"><code>BooGyya</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>임세희</strong><br />프론트엔드<br /><a href="https://github.com/1lights1"><code>1lights1</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/hohojinjin.jpg" height="128" alt="박호진 프로필 사진" /><br /><strong>박호진</strong><br />팀장 · AI 및 데이터<br /><a href="https://github.com/hohojinjin"><code>hohojinjin</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/BooGyya.jpeg" height="128" alt="김보경 프로필 사진" /><br /><strong>김보경</strong><br />프론트엔드<br /><a href="https://github.com/BooGyya"><code>BooGyya</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/1lights1.jpg" height="128" alt="임세희 프로필 사진" /><br /><strong>임세희</strong><br />프론트엔드<br /><a href="https://github.com/1lights1"><code>1lights1</code></a></td>
   </tr>
   <tr>
-    <td align="center" width="33%">{공란}<br /><strong>황민정</strong><br />프론트엔드<br /><a href="https://github.com/alswjd131313"><code>alswjd131313</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>김진광</strong><br />백엔드<br /><a href="https://github.com/Kim-jin-gwang"><code>Kim-jin-gwang</code></a></td>
-    <td align="center" width="33%">{공란}<br /><strong>김지훈</strong><br />백엔드<br /><a href="https://github.com/2hnK"><code>2hnK</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/alswjd131313.png" height="128" alt="황민정 프로필 사진" /><br /><strong>황민정</strong><br />프론트엔드<br /><a href="https://github.com/alswjd131313"><code>alswjd131313</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/Kim-jin-gwang.jpg" height="128" alt="김진광 프로필 사진" /><br /><strong>김진광</strong><br />백엔드<br /><a href="https://github.com/Kim-jin-gwang"><code>Kim-jin-gwang</code></a></td>
+    <td align="center" width="33%"><img src="docs/media/team/2hnK.jpg" height="128" alt="김지훈 프로필 사진" /><br /><strong>김지훈</strong><br />백엔드<br /><a href="https://github.com/2hnK"><code>2hnK</code></a></td>
   </tr>
 </table>
 
@@ -74,136 +72,65 @@
 
 ## ✨ 주요 기능
 
-| 기능 | 설명 |
-| --- | --- |
-| 데이터 가져오기 | 열려 있는 Excel 시트를 읽고 추출한 값을 검토한 뒤 저장합니다. |
-| 대시보드와 버전 히트맵 | 사업장과 라인별 달성률을 비교하고 목표에 미달한 설비를 찾습니다. |
-| 아이템 매니저 | 릴리스에 포함된 변경 항목(Item)을 검색하고 설비별 적용 여부를 확인합니다. |
-| 버전 리플레이 | 과거 관측 기록을 날짜순으로 재생해 버전 분포가 어떻게 달라졌는지 살펴봅니다. |
-| AI 분석과 보고서 | 자연어로 설비 현황을 묻고, 조회 결과와 그래프를 Word 또는 PDF로 내보냅니다. |
-| 데이터 관리와 내보내기 | 설비·버전 정보를 정정하고, 현황을 Excel로 출력하거나 관리 데이터를 SQL로 백업합니다. |
-
-### 1. Excel 현황표를 읽고 원본과 대조하기
-
-열려 있는 통합문서에서 시트를 고르면 설비, 버전, 기준일이 검토 표에 채워집니다. 값을 선택해 원본 셀을 확인하고, 잘못 읽힌 행을 고친 뒤 저장합니다. 아래 시연에서는 평택 설비 24대에 같은 기준일과 사업장을 한 번에 입력합니다.
-
-![Excel에서 읽은 설비별 값을 검토하는 화면](docs/media/screens/07-import.png)
-
-<details>
-<summary>조작 영상 보기</summary>
-
-**평택 현황표 선택부터 검토·저장까지**
-
-![평택 현황표 선택부터 검토·저장까지](docs/media/demos/07-import.gif)
-
-</details>
-
-**현황표를 저장하면 무엇이 달라질까요?** 2026년 11월 1일 기준 시연에서 평택 자료를 추가하자 분석 대상은 100대에서 124대로, 위험 후보는 8대에서 10대로 늘었습니다. 아래 두 화면은 같은 날짜의 저장 전후 결과입니다.
-
-| 화성 100대 · 목표 달성률 72.0% | 화성·평택 124대 · 목표 달성률 71.8% |
-| :---: | :---: |
-| ![평택 자료를 가져오기 전 대시보드](docs/media/screens/dashboard-before-import.png) | ![평택 자료를 저장한 뒤 대시보드](docs/media/screens/dashboard-after-import.png) |
-
-### 2. 라인별 달성률에서 개별 설비까지 살펴보기
-
-먼저 소프트웨어 계열마다 목표 버전 **N**을 정합니다. 대시보드에서 목표에 미달한 라인을 찾으면, 히트맵에서 해당 라인의 설비를 선택해 실제 버전과 관측 이력을 확인할 수 있습니다.
-
-| 라인별 목표 달성률 | 버전 계열별 목표 설정 | 설비별 버전 히트맵 |
-| :---: | :---: | :---: |
-| ![라인별 목표 달성률](docs/media/screens/01-dashboard.png) | ![버전 계열별 목표 설정](docs/media/screens/02-target-version.png) | ![설비별 버전 히트맵](docs/media/screens/03-version-heatmap.png) |
-
-<details>
-<summary>조작 영상 보기 (3개)</summary>
-
-**대시보드에서 차트 바꾸기**
-
-![대시보드에서 차트 바꾸기](docs/media/demos/01-dashboard.gif)
-
-**목표 버전 설정 열기**
-
-![목표 버전 설정 열기](docs/media/demos/02-target-version.gif)
-
-**히트맵에서 설비 상세 열기**
-
-![히트맵에서 설비 상세 열기](docs/media/demos/03-version-heatmap.gif)
-
-</details>
-
-### 3. 변경 항목을 기준으로 업데이트 대상 찾기
-
-기능명이나 Jira 코드로 릴리스의 변경 항목을 찾습니다. 항목을 열면 어느 설비에 적용됐고 어디에 빠졌는지 볼 수 있습니다. 필수 수정 사항이나 결함 버전을 위험 기준으로 등록하면 다음 점검에서 대상 설비를 다시 찾을 수 있습니다.
-
-![변경 항목의 설비별 적용 현황](docs/media/screens/05-item-manager.png)
-
-<details>
-<summary>조작 영상 보기</summary>
-
-**아이템 목록에서 변경 항목의 적용 설비 확인하기**
-
-![아이템 목록에서 변경 항목의 적용 설비 확인하기](docs/media/demos/05-item-manager.gif)
-
-</details>
-
-### 4. 지난 점검과 이번 점검 비교하기
-
-버전 리플레이에서 기간을 고르면 관측일에 따라 달성률과 히트맵이 함께 바뀝니다. 시연에서는 화성의 여섯 차례 점검 기록을 재생하고, 달성률이 달라진 시점에 멈춰 그날의 버전 분포를 살펴봅니다.
-
-![관측일에 따른 목표 버전 달성률](docs/media/screens/04-version-replay.png)
-
-<details>
-<summary>조작 영상 보기</summary>
-
-**여섯 기준일의 달성률과 히트맵 재생하기**
-
-![여섯 기준일의 달성률과 히트맵 재생하기](docs/media/demos/04-version-replay.gif)
-
-</details>
-
-### 5. 자연어로 묻고 보고서로 공유하기
-
-AI 분석 화면에 업데이트 우선순위를 물으면 설비 목록과 판단 근거를 확인할 수 있습니다. 아래 녹화는 예제 응답을 사용했습니다. 보고서 화면에서는 기간과 포함할 표·그래프를 고른 뒤 결과를 Word나 PDF로 저장합니다.
-
-| 업데이트 우선순위 예제 답변 | 보고서에 넣을 항목 선택 |
-| :---: | :---: |
-| ![업데이트 우선순위 예제 답변](docs/media/screens/06-ai-analysis.png) | ![보고서에 넣을 항목 선택](docs/media/screens/10-reports.png) |
-
-<details>
-<summary>조작 영상 보기 (2개)</summary>
-
-**우선순위를 묻고 결과 표 보기**
-
-![우선순위를 묻고 결과 표 보기](docs/media/demos/06-ai-analysis.gif)
-
-**보고서 항목과 저장 목록 확인하기**
-
-![보고서 항목과 저장 목록 확인하기](docs/media/demos/10-reports.gif)
-
-</details>
-
-### 6. 설비 기록을 관리하고 필요한 형식으로 내보내기
-
-데이터 관리에서 설비와 위치, 설치 버전, 릴리스 노트와 변경 이력을 조회합니다. 현황을 공유할 때는 Excel로 내보내고, 전체 관리 데이터를 보관할 때는 SQL 백업을 만듭니다. 설정에서는 화면 모드와 상태별 표시 색을 조정할 수 있습니다.
-
-| 설비 현황표와 관리 탭 | 데이터 내보내기 | 화면 모드와 색상 설정 |
-| :---: | :---: | :---: |
-| ![설비 현황표와 관리 탭](docs/media/screens/09-data-management.png) | ![데이터 내보내기](docs/media/screens/08-export.png) | ![화면 모드와 색상 설정](docs/media/screens/11-settings.png) |
-
-<details>
-<summary>조작 영상 보기 (3개)</summary>
-
-**설비 현황과 변경 이력 살펴보기**
-
-![설비 현황과 변경 이력 살펴보기](docs/media/demos/09-data-management.gif)
-
-**Excel·SQL 내보내기 전환하기**
-
-![Excel·SQL 내보내기 전환하기](docs/media/demos/08-export.gif)
-
-**표시 설정 살펴보기**
-
-![표시 설정 살펴보기](docs/media/demos/11-settings.gif)
-
-</details>
+<table>
+  <thead>
+    <tr><th width="68%">화면</th><th width="32%">설명</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/07-import.gif"><img src="docs/media/demos/07-import.gif" alt="평택 설비 현황표를 읽고 원본 셀 대조 후 저장하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>Excel 현황표 가져오기</strong><br /><br />열려 있는 통합문서에서 시트를 고르고 추출된 값을 원본 셀과 대조합니다. 시연에서는 평택 설비 24대에 기준일과 사업장을 한 번에 입력한 뒤 저장합니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/screens/dashboard-before-import.png"><img src="docs/media/screens/dashboard-before-import.png" alt="평택 현황표를 가져오기 전 화성 대시보드" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>가져오기 전 · 화성 100대</strong><br /><br />2026년 11월 1일 기준 시연 데이터입니다. 화성 설비 100대 중 72대가 목표 버전에 도달했고, 위험 후보는 8대입니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/screens/dashboard-after-import.png"><img src="docs/media/screens/dashboard-after-import.png" alt="평택 현황표를 저장한 뒤 화성과 평택을 집계한 대시보드" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>가져온 뒤 · 화성·평택 124대</strong><br /><br />같은 기준일에 평택 설비 24대를 추가하자 두 사업장의 목표 달성률은 71.8%, 위험 후보는 10대로 바뀌었습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/02-target-version.gif"><img src="docs/media/demos/02-target-version.gif" alt="소프트웨어 계열을 고르고 목표 버전 설정을 확인하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>목표 버전 설정</strong><br /><br />비교할 소프트웨어 계열을 고르고 목표 단계 N에 해당하는 버전을 지정합니다. 대시보드와 히트맵은 이 기준으로 설비의 목표 달성 여부를 표시합니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/01-dashboard.gif"><img src="docs/media/demos/01-dashboard.gif" alt="대시보드에서 히트맵과 원형·막대·꺾은선 그래프를 차례로 보는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>라인별 목표 달성률</strong><br /><br />사업장과 라인을 조회해 목표에 미달한 설비가 어디에 모여 있는지 확인합니다. 같은 결과를 막대그래프로 비교하거나 꺾은선그래프로 시점별 변화를 볼 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/03-version-heatmap.gif"><img src="docs/media/demos/03-version-heatmap.gif" alt="버전 히트맵에서 위험 후보를 걸러 설비 상세를 여는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>설비별 버전 히트맵</strong><br /><br />설비를 라인이나 설비군별로 묶고 위험 후보만 골라 봅니다. 설비 한 대를 선택하면 실제 설치 버전과 과거 관측 이력을 확인할 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/05-item-manager.gif"><img src="docs/media/demos/05-item-manager.gif" alt="아이템 매니저에서 변경 항목의 설비별 적용 현황을 여는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>변경 항목별 적용 현황</strong><br /><br />기능명이나 Jira 코드로 릴리스의 변경 항목을 찾습니다. 항목을 열면 어떤 설비에 이미 반영됐고 어느 설비에 업데이트가 필요한지 확인할 수 있습니다. 필수 수정 사항이나 결함 버전은 위험 기준으로 등록할 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/04-version-replay.gif"><img src="docs/media/demos/04-version-replay.gif" alt="여섯 관측일의 달성률과 히트맵을 재생하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>버전 리플레이</strong><br /><br />화성의 여섯 차례 점검 기록을 날짜순으로 재생합니다. 달성률이 바뀐 날에 멈춰 히트맵을 보면 변화가 생긴 라인과 설비군을 찾을 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/06-ai-analysis.gif"><img src="docs/media/demos/06-ai-analysis.gif" alt="AI 분석에서 업데이트 우선순위를 묻고 결과 표를 확인하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>AI로 업데이트 우선순위 조회</strong><br /><br />업데이트가 시급한 설비를 물으면 답변과 설비 목록이 함께 나타납니다. 판단 근거에서 적용된 조회 조건을 확인할 수 있습니다. 이 녹화는 예제 응답을 사용했습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/10-reports.gif"><img src="docs/media/demos/10-reports.gif" alt="보고서에 포함할 항목과 저장한 보고서 목록을 확인하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>보고서 만들기</strong><br /><br />조회 기간을 정하고 달성률 추이, 히트맵, 위험 판정 근거 중 보고할 내용을 고릅니다. 생성한 결과를 미리 보고 Word나 PDF로 저장할 수 있습니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/09-data-management.gif"><img src="docs/media/demos/09-data-management.gif" alt="현황표에서 설비·위치·릴리스 노트·변경 이력으로 이동하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>설비 기록 관리</strong><br /><br />현황표에서 설비와 위치를 확인하고, 릴리스 노트와 변경 이력을 조회합니다. 기록을 정정할 때는 설비와 관측일을 고른 뒤 기존 값과 수정할 값을 비교합니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/08-export.gif"><img src="docs/media/demos/08-export.gif" alt="데이터 내보내기 화면에서 Excel과 SQL 탭을 전환하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>Excel 내보내기와 SQL 백업</strong><br /><br />조회한 설비 현황을 공유할 때는 Excel을 선택합니다. 전체 관리 데이터를 보관하거나 다른 PC로 옮길 때는 SQL 백업을 만듭니다.</td>
+    </tr>
+    <tr>
+      <td width="68%"><a href="docs/media/demos/11-settings.gif"><img src="docs/media/demos/11-settings.gif" alt="설정 화면에서 화면 모드와 상태별 색상 옵션을 확인하는 과정" width="720" /></a></td>
+      <td width="32%" valign="middle"><strong>화면 표시 설정</strong><br /><br />화면 모드와 상태별 표시 색을 조정합니다. 현장에서 목표 달성과 미달 상태를 쉽게 구분할 수 있도록 색상을 선택할 수 있습니다.</td>
+    </tr>
+  </tbody>
+</table>
 
 ---
 
